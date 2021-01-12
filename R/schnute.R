@@ -59,7 +59,7 @@ if(version=="B0"){
 
 
     obj <- TMB::MakeADFun(
-      data = c(model = alt_schnute,dat_tmb),
+      data = c(model = "alt_schnute",dat_tmb),
       parameters = par_tmb,
       map = list(
         logindex_sigma = factor(ifelse(rep(fix_indexsigma,no.survey)==T,NA,c(seq(from=1, to=no.survey, by = 1)))),

@@ -15,7 +15,7 @@ data_tmb <- list(
   mean_wts=mwts,
   nu=tsp,
   SRcode=2,
-  spawn_prop=NULL)
+  spawn_prop=rep(0.5,times=41))
 
 return(data_tmb)
 
