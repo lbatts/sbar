@@ -328,4 +328,5 @@ Type alt_schnute(objective_function<Type>* obj) {
 
 }
 
-
+#undef TMB_OBJECTIVE_PTR
+#define TMB_OBJECTIVE_PTR this

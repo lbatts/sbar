@@ -38,7 +38,7 @@ if(version=="B0"){
   par_tmb<-schnute_parprep_v2(q = start_q, indexsigma = start_indexsigma, B0 = sb0 , sigma = start_sigma, rho, W, f_calc = rep(start_f_calc,ny), catchsigma = start_catchsigma)
 
   obj <- TMB::MakeADFun(
-    data = dat_tmb,
+    data = c(model = "schnute_new_V2",dat_tmb),
     parameters = par_tmb,
     map = list(
       logB0=factor(ifelse(fix_B0==T,NA,1)),
@@ -51,7 +51,7 @@ if(version=="B0"){
       logrec_param = factor(rep(NA,2))
     ),
     hessian = TRUE,
-    DLL = "schnute_new_V2")
+    DLL = "sbar_TMBExports")
 
 
   }else if(version == "y1_no_f"){
@@ -59,7 +59,7 @@ if(version=="B0"){
 
 
     obj <- TMB::MakeADFun(
-      data = dat_tmb,
+      data = c(model = alt_schnute,dat_tmb),
       parameters = par_tmb,
       map = list(
         logindex_sigma = factor(ifelse(rep(fix_indexsigma,no.survey)==T,NA,c(seq(from=1, to=no.survey, by = 1)))),
@@ -71,7 +71,7 @@ if(version=="B0"){
         logcatch_sigma = factor(ifelse(fix_catchsigma==T,NA,1))
       ),
       hessian = TRUE,
-      DLL = "alt_schnute")
+      DLL = "sbar_TMBExports")
 
 
 
