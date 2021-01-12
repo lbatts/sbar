@@ -1,0 +1,23 @@
+Package: sbar
+Title: Stage-based assessments in R
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Luke",
+           family = "Batts",
+           role = c("aut", "cre"),
+           email = "luke.batts@research.gmit.ie",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Implementations of the stage-based fisheries assessment models CSA and Schnute (1987). Models are those detailed and implemented in the paper .......
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+URL: https://github.com/lbatts/sbar
+BugReports: https://github.com/lbatts/sbar/issues
+Depends: 
+    R (>= 2.10)
+Suggests:
+    FLCore
+Imports: TMB (>= 1.7.18)
+LinkingTo: TMB
