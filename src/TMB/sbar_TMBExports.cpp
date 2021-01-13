@@ -4,6 +4,7 @@
 #include <TMB.hpp>
 #include "alt_schnute.hpp"
 #include "schnute_new_V2.hpp"
+#include "csa.hpp"
 
 template<class Type>
 Type objective_function<Type>::operator() () {
@@ -12,6 +13,8 @@ Type objective_function<Type>::operator() () {
     return alt_schnute(this);
   } else if(model == "schnute_new_V2") {
     return schnute_new_V2(this);
+  } else if(model == "csa") {
+    return csa(this);
   } else {
     error("Unknown model.");
   }

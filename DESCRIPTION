@@ -19,5 +19,7 @@ Depends:
     R (>= 2.10)
 Suggests:
     FLCore
-Imports: TMB (>= 1.7.18)
+Imports: 
+    TMB (>= 1.7.18),
+    reshape2
 LinkingTo: TMB

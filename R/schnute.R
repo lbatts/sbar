@@ -1,4 +1,4 @@
-#' Prepare for assessment
+#' Prepare list for SChnute assessment in an optimiser
 #'
 #' Create an object with TMB framework, including data, gradients and NLL function that can be optimised
 #'
@@ -34,8 +34,26 @@ schnute_peb<-function(version,catch,indices,ts, mwts,tsp = 0, rho,W, start_q = 1
 
   dat_tmb<-schnute_datprep(catch,indices,ts,mwts,tsp)
 
+  if(length(start_q) == 1 & no.survey > 1){
+    start_q <- rep(start_q,no.survey)
+    message("default start q used for each survey")
+  }else start_q <-start_q
+
+
+  if(length(start_indexsigma) == 1 & no.survey > 1){
+    start_indexsigma <- rep(start_indexsigma,no.survey)
+    message("default start_indexsigma used for each survey")
+  }else start_indexsigma <-start_indexsigma
+
+  if(length(start_f_calc) == 1){
+start_f_calc <- rep(start_f_calc,ny)
+  }else if(length(start_f_calc) == ny){
+  start_f_calc <- start_f_calc
+}else stop("mismathc in starting f_calc and number of years. Check your starting fishing mortality values")
+
+
 if(version=="B0"){
-  par_tmb<-schnute_parprep_v2(q = start_q, indexsigma = start_indexsigma, B0 = sb0 , sigma = start_sigma, rho, W, f_calc = rep(start_f_calc,ny), catchsigma = start_catchsigma)
+  par_tmb<-schnute_parprep_v2(q = start_q, indexsigma = start_indexsigma, B0 = sb0 , sigma = start_sigma, rho, W, f_calc = start_f_calc, catchsigma = start_catchsigma)
 
   obj <- TMB::MakeADFun(
     data = c(model = "schnute_new_V2",dat_tmb),
@@ -55,7 +73,7 @@ if(version=="B0"){
 
 
   }else if(version == "y1_no_f"){
-    par_tmb<-schnute_parprep_v1(q = start_q, indexsigma = start_indexsigma, sigma = start_sigma, rho, W, f_calc = rep(start_f_calc,(ny)), catchsigma = start_catchsigma)
+    par_tmb<-schnute_parprep_v1(q = start_q, indexsigma = start_indexsigma, sigma = start_sigma, rho, W, f_calc = start_f_calc, catchsigma = start_catchsigma)
 
 
     obj <- TMB::MakeADFun(

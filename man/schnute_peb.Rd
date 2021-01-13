@@ -2,7 +2,7 @@
 % Please edit documentation in R/schnute.R
 \name{schnute_peb}
 \alias{schnute_peb}
-\title{Prepare for assessment}
+\title{Prepare list for SChnute assessment in an optimiser}
 \usage{
 schnute_peb(
   version,
