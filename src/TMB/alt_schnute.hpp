@@ -145,7 +145,7 @@ Type alt_schnute(objective_function<Type>* obj) {
   Type rec_a = rec_param[0];
   Type rec_b = rec_param[1];
 
-  std::cout << "B0" << std::endl << exp(logB0) << std::endl << std::endl;
+  //std::cout << "B0" << std::endl << exp(logB0) << std::endl << std::endl;
   //std::cout << "B0sum" << std::endl << B0.sum() << std::endl << std::endl;
   //std::cout << "B02sum" << std::endl << B0_ctrl.sum()  << std::endl << std::endl;
   for(int i=0;i<(no_years-1);i++){
@@ -245,7 +245,7 @@ Type alt_schnute(objective_function<Type>* obj) {
   //std::cout << "x prog" << std::endl << xprog << std::endl << std::endl;
 
   ////std::cout << "prev_ex" << std::endl << prev_ex << std::endl << std::endl;
-  std::cout << "biomass" << std::endl << biomass << std::endl << std::endl;
+  //std::cout << "biomass" << std::endl << biomass << std::endl << std::endl;
   //std::cout << "pred_survey" << std::endl << pred_survey << std::endl << std::endl;
   //std::cout << "catch" << std::endl << catch_pred << std::endl << std::endl;
   //std::cout << "omega" << std::endl << omega << std::endl << std::endl;

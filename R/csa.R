@@ -10,6 +10,7 @@
 #' @param start_q numeric
 #' @param start_surveycv numeric
 #' @param start_prec0 numeric
+#' @param start_rec numeric
 #' @param start_nmort numeric
 #' @param start_f_calc numeric
 #' @param start_catchcv numeric
@@ -91,7 +92,8 @@ indices_att <- as.matrix(indices_att)
         lognmort = factor(ifelse(fix_nmort==T,NA,1)),
         logitsrx = factor(rep(NA,ny))#,
         ),
-      hessian = TRUE,
+      hessian = FALSE,
+      silent = TRUE,
       DLL = "sbar_TMBExports")
 
 

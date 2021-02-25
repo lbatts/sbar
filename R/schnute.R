@@ -68,7 +68,8 @@ if(version=="B0"){
       logcatch_sigma = factor(ifelse(fix_catchsigma==T,NA,1)),
       logrec_param = factor(rep(NA,2))
     ),
-    hessian = TRUE,
+    hessian = FALSE,
+    silent = TRUE,
     DLL = "sbar_TMBExports")
 
 
@@ -88,7 +89,8 @@ if(version=="B0"){
         logitsigma = factor(ifelse(fix_sigma==T,NA,1)),
         logcatch_sigma = factor(ifelse(fix_catchsigma==T,NA,1))
       ),
-      hessian = TRUE,
+      hessian = FALSE,
+      silent = TRUE,
       DLL = "sbar_TMBExports")
 
 

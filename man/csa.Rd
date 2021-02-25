@@ -40,6 +40,8 @@ csa(
 
 \item{start_prec0}{numeric}
 
+\item{start_rec}{numeric}
+
 \item{start_nmort}{numeric}
 
 \item{start_f_calc}{numeric}
