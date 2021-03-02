@@ -282,7 +282,7 @@ Type schnute_new_V2(objective_function<Type>* obj) {
 
   ADREPORT(biomass);
   ADREPORT(N);
-  ADREPORT(ssb);
+  //ADREPORT(ssb);
   ADREPORT(post_rec);
   ADREPORT(PR);
   //ADREPORT(rec);

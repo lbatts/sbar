@@ -3,8 +3,8 @@
 #' Create an object with TMB framework, including data, gradients and NLL function that can be optimised
 #'
 #' @param version character
-#' @param catch numeric
-#' @param indices matrix
+#' @param catchkg numeric
+#' @param indiceskg matrix
 #' @param ts numeric
 #' @param mwts matrix
 #' @param tsp numeric
@@ -26,13 +26,13 @@
 # #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
 
 
-schnute_peb<-function(version,catch,indices,ts, mwts,tsp = 0, rho,W, start_q = 1e-8, start_indexsigma = 0.1 ,start_B0 = sb0, start_sigma = exp(-0.2) , start_f_calc = 0.3,start_catchsigma = 0.1, fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE, fix_catchsigma = TRUE){
+schnute_peb<-function(version,catchkg,indiceskg,ts, mwts,tsp = 0, rho,W, start_q = 1e-8, start_indexsigma = 0.1 ,start_B0 = sb0, start_sigma = exp(-0.2) , start_f_calc = 0.3,start_catchsigma = 0.1, fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE, fix_catchsigma = TRUE){
 
-  sb0 <- 5*max(catch)
-  ny <- length(catch)
+  sb0 <- 5*max(catchkg)
+  ny <- length(catchkg)
   no.survey <- length(ts)
 
-  dat_tmb<-schnute_datprep(catch,indices,ts,mwts,tsp)
+  dat_tmb<-schnute_datprep(catchkg,indiceskg,ts,mwts,tsp)
 
   if(length(start_q) == 1 & no.survey > 1){
     start_q <- rep(start_q,no.survey)
@@ -68,7 +68,7 @@ if(version=="B0"){
       logcatch_sigma = factor(ifelse(fix_catchsigma==T,NA,1)),
       logrec_param = factor(rep(NA,2))
     ),
-    hessian = FALSE,
+    hessian = TRUE,
     silent = TRUE,
     DLL = "sbar_TMBExports")
 
@@ -89,7 +89,7 @@ if(version=="B0"){
         logitsigma = factor(ifelse(fix_sigma==T,NA,1)),
         logcatch_sigma = factor(ifelse(fix_catchsigma==T,NA,1))
       ),
-      hessian = FALSE,
+      hessian = TRUE,
       silent = TRUE,
       DLL = "sbar_TMBExports")
 

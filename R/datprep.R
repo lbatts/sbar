@@ -3,17 +3,17 @@
 
 
 
-schnute_datprep<-function(catch,indices,ts, mwts,tsp){
+schnute_datprep<-function(catchkg,indiceskg,ts, mwts,tsp){
 
 data_tmb <- list(
-  obs_catch = catch,
-  obs_ind = indices,
+  obs_catch = catchkg,
+  obs_ind = indiceskg,
   indices_class = c(2),
   indices_ts = ts,
   mean_wts=mwts,
   nu=tsp,
   SRcode=2,
-  spawn_prop=NA)
+  spawn_prop=rep(1,length(catchkg)))
 
 return(data_tmb)
 
@@ -58,22 +58,22 @@ schnute_parprep_v1 <- function( q, indexsigma, sigma, rho, W, f_calc, catchsigma
 
 
 
-csa_datprep<-function(catch_no, indices, indices_att, ts, sr){
+csa_datprep<-function(catch_no, indices_no, indices_att, ts, selrec){
 
 
   data_tmb <- list(
     obs_catch = catch_no,
-    obs_ind = indices,
+    obs_ind = indices_no,
     indices_class = indices_att,
     indices_ts = ts,
-    sr =sr)
+    sr =selrec)
 
 
   return(data_tmb)
 
 }
 
-csa_parprep <- function( q, surveycv, rec, prec0, nmort, f_calc, catchcv, srx){
+csa_parprep <- function( q, surveycv, rec_est, prec0, nmort, f_calc, catchcv, srx){
 
 
   params <- list(
@@ -81,7 +81,7 @@ csa_parprep <- function( q, surveycv, rec, prec0, nmort, f_calc, catchcv, srx){
     log_surveycv = log(surveycv),
     log_catchcv = log(catchcv),
     logphat1 = (log(prec0)),
-    logrhat = log(rec),
+    logrhat = log(rec_est),
     logf_calc = log(f_calc),
     lognmort = log(nmort),
     logitsrx = stats::qlogis(srx)

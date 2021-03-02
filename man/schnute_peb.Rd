@@ -6,8 +6,8 @@
 \usage{
 schnute_peb(
   version,
-  catch,
-  indices,
+  catchkg,
+  indiceskg,
   ts,
   mwts,
   tsp = 0,
@@ -28,9 +28,9 @@ schnute_peb(
 \arguments{
 \item{version}{character}
 
-\item{catch}{numeric}
+\item{catchkg}{numeric}
 
-\item{indices}{matrix}
+\item{indiceskg}{matrix}
 
 \item{ts}{numeric}
 

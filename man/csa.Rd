@@ -6,10 +6,10 @@
 \usage{
 csa(
   catch_no,
-  indices,
+  indices_no,
   indices_att,
   ts,
-  sr,
+  selrec,
   start_q = 1e-08,
   start_surveycv = 0.1,
   start_prec0 = spr0,
@@ -26,13 +26,13 @@ csa(
 \arguments{
 \item{catch_no}{numeric}
 
-\item{indices}{matrix}
+\item{indices_no}{matrix}
 
 \item{indices_att}{matrix}
 
 \item{ts}{numeric}
 
-\item{sr}{numeric}
+\item{selrec}{numeric}
 
 \item{start_q}{numeric}
 
