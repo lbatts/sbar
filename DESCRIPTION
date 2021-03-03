@@ -8,7 +8,7 @@ Authors@R:
            email = "luke.batts@research.gmit.ie",
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: Implementations of the stage-based fisheries assessment models CSA and Schnute (1987). Models are those detailed and implemented in the paper .......
-License: GPL-3
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
