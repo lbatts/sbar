@@ -29,6 +29,7 @@ Type schnute_new_V2(objective_function<Type>* obj) {
   //DATA_VECTOR(omega);
   DATA_INTEGER(SRcode);
   DATA_VECTOR(spawn_prop);
+  DATA_VECTOR(l_calc_wt);
 
 
 
@@ -39,7 +40,7 @@ Type schnute_new_V2(objective_function<Type>* obj) {
   PARAMETER_VECTOR(logrec_param);
 
   PARAMETER(logB0);
-  PARAMETER_VECTOR(logq);//proportionality parameter for index
+  PARAMETER_VECTOR(logitq);//proportionality parameter for index
   PARAMETER(logW);
   PARAMETER(logrho);
   PARAMETER_VECTOR(logf_calc);
@@ -57,7 +58,7 @@ Type schnute_new_V2(objective_function<Type>* obj) {
   //process params
   Type sigma=invlogit(logitsigma);
   vector <Type> index_sigma = exp(logindex_sigma);
-  vector <Type> qhat = exp(logq);
+  vector <Type> qhat = invlogit(logitq);
   vector <Type> rec_param = exp(logrec_param);
 
   Type B0 = exp(logB0);
@@ -246,7 +247,7 @@ Type schnute_new_V2(objective_function<Type>* obj) {
 
       if(obs_ind(j,i) >0){
 
-        nll -= dnorm(log(obs_ind(j,i)), logpred_survey(j,i),index_sigma[j],true);
+        nll -= l_calc_wt(j) * dnorm(log(obs_ind(j,i)), logpred_survey(j,i),index_sigma[j],true);
 
       }
     }
@@ -254,7 +255,7 @@ Type schnute_new_V2(objective_function<Type>* obj) {
 
   for (int i=0; i < no_years; i++){
 
-    nll -= dnorm(log(obs_catch[i]), log(catch_pred[i]), catch_sigma, true);
+    nll -=  dnorm(log(obs_catch[i]), log(catch_pred[i]), catch_sigma, true);
 
   }
 

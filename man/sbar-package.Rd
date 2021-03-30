@@ -17,7 +17,17 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Luke Batts \email{luke.batts@research.gmit.ie} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Luke Batts \email{luke.batts@research.gmit.ie}
+
+Authors:
+\itemize{
+  \item Coilin Minto \email{coilin.minto@gmit.ie}
+}
+
+Other contributors:
+\itemize{
+  \item Hans Gerritsen [contributor]
+}
 
 }
 \keyword{internal}

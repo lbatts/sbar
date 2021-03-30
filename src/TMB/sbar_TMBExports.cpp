@@ -2,19 +2,19 @@
 
 #define TMB_LIB_INIT R_init_sbar_TMBExports
 #include <TMB.hpp>
-#include "alt_schnute.hpp"
 #include "csa.hpp"
 #include "schnute_new_V2.hpp"
+#include "schnute_orig.hpp"
 
 template<class Type>
 Type objective_function<Type>::operator() () {
   DATA_STRING(model);
-  if(model == "alt_schnute") {
-    return alt_schnute(this);
-  } else if(model == "csa") {
+  if(model == "csa") {
     return csa(this);
   } else if(model == "schnute_new_V2") {
     return schnute_new_V2(this);
+  } else if(model == "schnute_orig") {
+    return schnute_orig(this);
   } else {
     error("Unknown model.");
   }

@@ -3,30 +3,31 @@
 
 
 
-schnute_datprep<-function(catchkg,indiceskg,ts, mwts,tsp){
+schnute_datprep<-function(catchkg,indiceskg,ts, mwts,tsp,version,ind_l_wt){
 
 data_tmb <- list(
   obs_catch = catchkg,
   obs_ind = indiceskg,
-  indices_class = c(2),
+  indices_class = version,
   indices_ts = ts,
   mean_wts=mwts,
   nu=tsp,
   SRcode=2,
-  spawn_prop=rep(1,length(catchkg)))
+  spawn_prop=rep(1,length(catchkg)),
+  l_calc_wt = c(ind_l_wt))
 
 return(data_tmb)
 
 }
 
-schnute_parprep_v2 <- function( q, indexsigma, B0, sigma, rho, W, f_calc, catchsigma){
+schnute_parprep_v2 <- function( q, indexsigma, B0, sigma, rho, W,rec_a,rec_b, f_calc, catchsigma){
 
 
 params <- list(
-  logq = log(q),
+  logitq = stats::qlogis(q),
   logindex_sigma = log(indexsigma),
   logB0 = log(B0),
-  logrec_param = log(c(1,1)),
+  logrec_param = log(c(rec_a,rec_b)),
   logitsigma = stats::qlogis(sigma),
   logrho=log(rho),
   logW=log(W),
@@ -39,18 +40,16 @@ return(params)
 
 
 
-schnute_parprep_v1 <- function( q, indexsigma, sigma, rho, W, f_calc, catchsigma){
+schnute_parprep_v1 <- function( q, indexsigma, sigma, rho, W,rec_a,rec_b){
 
 
   params <- list(
-    logq = log(q),
+    logitq = stats::qlogis(q),
     logindex_sigma = log(indexsigma),
-    logrec_param = log(c(1,1)),
+    logrec_param = log(c(rec_a,rec_b)),
     logitsigma = stats::qlogis(sigma),
     logrho=log(rho),
-    logW=log(W),
-    logf_calc = log(f_calc),
-    logcatch_sigma = log(catchsigma))
+    logW=log(W))
 
   return(params)
 
