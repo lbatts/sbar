@@ -103,8 +103,9 @@ Type schnute_orig(objective_function<Type>* obj) {
   int tp;
   tp  = indices_class;
   matrix <Type> logB0(no_ind,no_years);
-  vector <Type> B0_ctrl(no_ind);
-  vector <Type> logB0_y;
+  matrix <Type> B0_ctrl(no_ind,no_years);
+  vector <Type> logB0_y(no_ind);
+  vector <Type> B0_ctrl2(no_ind);
   //Type B0;
 
 
@@ -122,43 +123,48 @@ Type schnute_orig(objective_function<Type>* obj) {
 
       theta = indices_ts[j];
       q = qhat[j];
-
+      logB0(j,i) = 0;
+      B0_ctrl(j,i) = 0;
       if(obs_ind(j,i)>0){
         logB0(j,i) = log((obs_ind(j,i) + q*((theta*(1 - mu*(1-sigma)))*obs_catch[i]))/q*(1-theta*(1-sigma)));
-        B0_ctrl[j]= 1;
+        B0_ctrl(j,i)= 1;
         logB0_y = logB0.col(i);
       }
+    }
 
+    B0_ctrl2 = B0_ctrl.col(i);
+    biomass[i] = exp(logB0_y.sum()/ B0_ctrl2.sum());
+    ssb[i] = spawn_prop[i]*((biomass[i]*(1-nu*(1-sigma))) - ((nu*(1 - mu*(1-sigma)))*obs_catch[i]));
 
-      biomass[i] = exp(logB0_y.sum()/ B0_ctrl.sum());
-      ssb[i] = spawn_prop[i]*((biomass[i]*(1-nu*(1-sigma))) - ((nu*(1 - mu*(1-sigma)))*obs_catch[i]));
+    N[i] = biomass[i] / mean_wts(2,i);
 
-      N[i] = biomass[i] / mean_wts(2,i);
-
-      if(SRcode==0){//ricker SR model
-        warning("This SRcode requires a index of recruit biomass only");
-        rec_bio[i+1] = (rec_param[i+1]);
+    if(SRcode==0){//ricker SR model
+      warning("This SRcode requires a index of recruit biomass only");
+      rec_bio[i+1] = (rec_param[i+1]);
+    }else{
+      if(SRcode==1){//ricker SR model
+        Type rec_a = rec_param[0];
+        Type rec_b = rec_param[1];
+        rec_no[i+1] = ((rec_a*ssb[i])*exp(-rec_b*ssb[i]));
+        rec_bio[i+1] = rec_no[i+1]*mean_wts(0,i+1);
       }else{
-        if(SRcode==1){//ricker SR model
-          Type rec_a = rec_param[0];
-          Type rec_b = rec_param[1];
-          rec_no[i+1] = ((rec_a*ssb[i])*exp(-rec_b*ssb[i]));
+        if(SRcode==2){//bevholt SR model
+
+          rec_no[i+1] = (rec_a*ssb[i]/(rec_b +ssb[i]));
           rec_bio[i+1] = rec_no[i+1]*mean_wts(0,i+1);
         }else{
-          if(SRcode==2){//bevholt SR model
-
-            rec_no[i+1] = (rec_a*ssb[i]/(rec_b +ssb[i]));
-            rec_bio[i+1] = rec_no[i+1]*mean_wts(0,i+1);
-          }else{
-            error("SRcode not recognised");
-          }
+          error("SRcode not recognised");
         }
       }
+    }
 
 
-      X_yearon = W + rho*mean_wts(2,i);
-      xprog[i] = (X_yearon/mean_wts(2,i));
+    X_yearon = W + rho*mean_wts(2,i);
+    xprog[i] = (X_yearon/mean_wts(2,i));
 
+    for(int j=0; j<no_ind; j++){
+      theta = indices_ts[j];
+      q = qhat[j];
       //RECRUITS
       if(tp ==1){
 
@@ -187,41 +193,44 @@ Type schnute_orig(objective_function<Type>* obj) {
         logpred_survey(j,i+1) = log(q*(((1-theta*(1-sigma))*(rec_bio[i+1] + post_rec[i+1])) - ((theta*(1 - mu*(1-sigma)))*obs_catch[i+1])));
       }
 
-
-      PR[i+1] = post_rec[i+1] / mean_wts(1,i+1);
-      C[i+1] = obs_catch[i+1] / mean_wts(2,i+1);
-
     }
+    PR[i+1] = post_rec[i+1] / mean_wts(1,i+1);
+    C[i+1] = obs_catch[i+1] / mean_wts(2,i+1);
+
+
   }
+
 
 
   for(int j=0; j<no_ind; j++){
 
     theta = indices_ts[j];
     q = qhat[j];
-
+    logB0(j,(no_years-1)) = 0;
+    B0_ctrl(j,(no_years-1)) = 0;
     if(obs_ind(j,(no_years-1))>0){
       logB0(j,(no_years-1)) = log((obs_ind(j,(no_years-1)) + q*((theta*(1 - mu*(1-sigma)))*obs_catch[(no_years-1)]))/q*(1-theta*(1-sigma)));
-      B0_ctrl[j]= 1;
+      B0_ctrl(j,(no_years-1))= 1;
       logB0_y = logB0.col((no_years-1));
     }
   }
+  B0_ctrl2 = B0_ctrl.col((no_years-1));
 
-  biomass[(no_years-1)] = exp(logB0_y.sum()/ B0_ctrl.sum());
+  biomass[(no_years-1)] = exp(logB0_y.sum()/ B0_ctrl2.sum());
   ssb[(no_years-1)] = spawn_prop[(no_years-1)]*((biomass[(no_years-1)]*(1-nu*(1-sigma))) - ((nu*(1 - mu*(1-sigma)))*obs_catch[(no_years-1)]));
 
   N[(no_years-1)] = biomass[(no_years-1)] / mean_wts(2,(no_years-1));
   C[0] = obs_catch[0] / mean_wts(2,0);
 
 
-  //std::cout << "post_rec" << std::endl << post_rec << std::endl << std::endl;
+  std::cout << "post_rec" << std::endl << post_rec << std::endl << std::endl;
   //std::cout << "rec bio" << std::endl << rec_bio << std::endl << std::endl;
   //std::cout << "rec no" << std::endl << rec_no << std::endl << std::endl;
   //std::cout << "x prog" << std::endl << xprog << std::endl << std::endl;
 
   ////std::cout << "prev_ex" << std::endl << prev_ex << std::endl << std::endl;
-  //std::cout << "biomass" << std::endl << (rec_bio + post_rec) << std::endl << std::endl;
-  //std::cout << "pred_survey" << std::endl << pred_survey << std::endl << std::endl;
+  //std::cout << "biomass" << std::endl << biomass(0) << std::endl << std::endl;
+  std::cout << "pred_survey" << std::endl << logpred_survey.col(1) << std::endl << std::endl;
   //std::cout << "catch" << std::endl << obs_catch << std::endl << std::endl;
   //std::cout << "omega" << std::endl << omega << std::endl << std::endl;
 
@@ -236,7 +245,7 @@ Type schnute_orig(objective_function<Type>* obj) {
 
       if(obs_ind(j,i) >0){
 
-        nll -= l_calc_wt(j) * (dnorm(log(obs_ind(j,i)), logpred_survey(j,i),index_sigma[j],true));
+        nll -= l_calc_wt[j] * (dnorm(log(obs_ind(j,i)), logpred_survey(j,i),index_sigma[j],true));
 
       }
     }
@@ -282,11 +291,6 @@ Type schnute_orig(objective_function<Type>* obj) {
   ADREPORT(B0_ctrl);
   ADREPORT(rec_param);
   ADREPORT(index_sigma);
-
-
-
-
-
 
 
   return nll;

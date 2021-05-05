@@ -247,7 +247,7 @@ Type schnute_new_V2(objective_function<Type>* obj) {
 
       if(obs_ind(j,i) >0){
 
-        nll -= l_calc_wt(j) * dnorm(log(obs_ind(j,i)), logpred_survey(j,i),index_sigma[j],true);
+        nll -= l_calc_wt[j] * dnorm(log(obs_ind(j,i)), logpred_survey(j,i),index_sigma[j],true);
 
       }
     }
