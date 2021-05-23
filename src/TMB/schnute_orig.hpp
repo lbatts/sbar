@@ -223,14 +223,14 @@ Type schnute_orig(objective_function<Type>* obj) {
   C[0] = obs_catch[0] / mean_wts(2,0);
 
 
-  std::cout << "post_rec" << std::endl << post_rec << std::endl << std::endl;
+  //std::cout << "post_rec" << std::endl << post_rec << std::endl << std::endl;
   //std::cout << "rec bio" << std::endl << rec_bio << std::endl << std::endl;
   //std::cout << "rec no" << std::endl << rec_no << std::endl << std::endl;
   //std::cout << "x prog" << std::endl << xprog << std::endl << std::endl;
 
   ////std::cout << "prev_ex" << std::endl << prev_ex << std::endl << std::endl;
   //std::cout << "biomass" << std::endl << biomass(0) << std::endl << std::endl;
-  std::cout << "pred_survey" << std::endl << logpred_survey.col(1) << std::endl << std::endl;
+  //std::cout << "pred_survey" << std::endl << logpred_survey.col(1) << std::endl << std::endl;
   //std::cout << "catch" << std::endl << obs_catch << std::endl << std::endl;
   //std::cout << "omega" << std::endl << omega << std::endl << std::endl;
 
