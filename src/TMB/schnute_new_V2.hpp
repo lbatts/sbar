@@ -248,6 +248,9 @@ Type schnute_new_V2(objective_function<Type>* obj) {
       if(obs_ind(j,i) >0){
 
         nll -= l_calc_wt[j] * dnorm(log(obs_ind(j,i)), logpred_survey(j,i),index_sigma[j],true);
+        SIMULATE {
+          obs_ind(j,i) = exp(rnorm(logpred_survey(j,i), index_sigma[j]));  // Simulate response
+        }
 
       }
     }
@@ -256,6 +259,9 @@ Type schnute_new_V2(objective_function<Type>* obj) {
   for (int i=0; i < no_years; i++){
 
     nll -=  dnorm(log(obs_catch[i]), log(catch_pred[i]), catch_sigma, true);
+    SIMULATE {
+      obs_catch[i] = exp(rnorm(log(catch_pred[i]), catch_sigma));  // Simulate response
+    }
 
   }
 
@@ -270,7 +276,12 @@ Type schnute_new_V2(objective_function<Type>* obj) {
   vector <Type> lnPR = log(PR);
   vector <Type> lnR = log(rec_no);
   vector <Type> lnC = log(C);
-
+  
+  SIMULATE{
+    REPORT(obs_ind);          // Report the simulation
+    REPORT(obs_catch);
+  }
+  
   ADREPORT(lnb);
   ADREPORT(lnpr);
   ADREPORT(lnr);

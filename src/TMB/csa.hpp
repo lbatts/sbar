@@ -109,6 +109,9 @@ Type csa(objective_function<Type>* obj) {
 
       resid_catch[i] = log(obs_catch[i]) - log(c_calc[i]);
       lx = log(sdcatch) +  0.5 * pow((resid_catch[i] / sdcatch),2);
+      SIMULATE {
+        obs_catch[i] = exp(rnorm(log(c_calc[i]), sdcatch));  // Simulate response
+      }
 
       //nll -= dnorm(log(obs_catch[i]), log(c_calc[i]),sdcatch,true);
       negloglikelihood += lx * lambda_catch;
@@ -197,6 +200,10 @@ Type csa(objective_function<Type>* obj) {
         //sdsurvtemp = sqrt(log(1.0 + pow(surveycv[i],2)));
 
       l_calc(i,j) = log(sdsurv(i,j)) +  0.5 * pow((resid_log(i,j) / sdsurv(i,j)),2);
+      
+      SIMULATE {
+        obs_ind(i,j) = exp(rnorm(logpred_survey(i,j), sdsurv(i,j)));  // Simulate response
+      }
 
     l_calc_wt(i,j) = l_calc(i,j) * 1;
 
@@ -212,7 +219,10 @@ Type csa(objective_function<Type>* obj) {
   vector <Type> lnphat = log(phat);
   vector <Type> lnbhat = log(bhat);
   vector <Type> lnc = log(c_calc);
-
+  SIMULATE{
+    REPORT(obs_ind);          // Report the simulation
+    REPORT(obs_catch);
+  }
   ADREPORT(phat);
   ADREPORT(rhat);
   ADREPORT(bhat);
