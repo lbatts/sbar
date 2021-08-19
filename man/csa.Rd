@@ -9,7 +9,7 @@ csa(
   indices_no,
   indices_att,
   ts,
-  selrec,
+  selrec = 1,
   start_q = 1e-08,
   start_surveycv = 0.1,
   start_prec0 = spr0,

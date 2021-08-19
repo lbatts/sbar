@@ -24,7 +24,7 @@
 # #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
 
 
-csa<-function(catch_no,indices_no,indices_att,ts, selrec, start_q = 1e-8, start_surveycv = 0.1 ,start_prec0 = spr0, start_rec = srec, start_nmort = 0.2 , start_f_calc = 0.3, start_catchcv = 0.1, fix_nmort = TRUE, fix_prec0 = FALSE, fix_surveycv = FALSE, fix_catchcv = TRUE){
+csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, start_surveycv = 0.1 ,start_prec0 = spr0, start_rec = srec, start_nmort = 0.2 , start_f_calc = 0.3, start_catchcv = 0.1, fix_nmort = TRUE, fix_prec0 = FALSE, fix_surveycv = FALSE, fix_catchcv = TRUE){
 
   spr0 <- 4*max(catch_no)
   srec <- 2*max(catch_no)
@@ -36,7 +36,8 @@ csa<-function(catch_no,indices_no,indices_att,ts, selrec, start_q = 1e-8, start_
   colnames(tmp) <- c("survey","type")
   tmp<-reshape2::dcast(indices_att,survey~type,value.var = "type")
   tmp$test <- ifelse(rowSums(tmp[2:3])==3,0,NA)
-  (sum(tmp$test,na.rm = T)==0)
+  
+  nr<-length(indices_att[indices_att[,2]==1,2])
 
 
   if((sum(tmp$test,na.rm = T)!=0)){
@@ -47,7 +48,20 @@ csa<-function(catch_no,indices_no,indices_att,ts, selrec, start_q = 1e-8, start_
   if(no.survey != length(ts)){
     stop("no. of surveys does not match ts length")
   }
-
+  
+  if(missing(selrec)) {
+    message("arg: 'selrec' missing. Recruits survey assumed fully selected")
+    selrec <- matrix(selrec,nrow=nr,ncol=no.years)
+  }
+  
+  if(length(selrec) == 1){
+    selrec <- matrix(selrec,nrow=nr,ncol=no.years)
+    message("arg: 'selrec' has length 1 . Given value used for each year")
+  }else if(dim(selrec)[1] == nr & dim(selrec)[2] == ny ){
+    selrec <- as.matrix(selrec)
+  }else stop("selrec should be length of 1 or matrix of dim number of recruit indices x number of years")
+  
+  
   #message(paste("Summary: Input is",no.survey,"unique survey(s)","but",no.index,"indices"))
 
 indices_att <- as.matrix(indices_att)
