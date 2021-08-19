@@ -3,8 +3,8 @@
 #' Create an object with TMB framework, including data, gradients and NLL function that can be optimised
 #'
 #' @param version numeric
-#' @param catchkg numeric
-#' @param indiceskg matrix
+#' @param catch_b numeric
+#' @param indices_b matrix
 #' @param ts numeric
 #' @param mwts matrix
 #' @param tsp numeric
@@ -29,26 +29,42 @@
 # #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
 
 
-schnute_obserror<-function(version,catchkg,indiceskg,ts, mwts,tsp = 0, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 ,start_B0 = sb0, start_sigma = exp(-0.2) , start_f_calc = 0.3,  start_rec_a, start_rec_b, start_catchsigma = 0.1, fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE, fix_catchsigma = TRUE){
+schnute_obserror<-function(version,catch_b,indices_b,ts, mwts,tsp = 0, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 ,start_B0 = sb0, start_sigma = exp(-0.2) , start_f_calc = 0.3,  start_rec_a, start_rec_b, start_catchsigma = 0.1, fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE, fix_catchsigma = TRUE){
 
-  sb0 <- 5*max(catchkg)
-  ny <- length(catchkg)
-  no.survey <- length(ts)
+  sb0 <- 5*max(catch_b)
+  ny <- length(catch_b)
+  no.survey <- dim(indices_b)[1]
 
 
   if(missing(version)) message("Argument 'version' missing. Default model version is 2")
+  
+  if(no.survey != length(ts)){
+    stop("no. of surveys does not match ts length")
+  }
+  
 
   if(missing(ind_l_wt)){
     ind_l_wt <- rep(ind_l_wt,no.survey)
     message("Argument 'ind_l_wt' missing. Default indices likelihood weighting of 1 used for each survey")
   }
-
+  
+  if(length(ind_l_wt) == 1 & no.survey > 1){
+    ind_l_wt <- rep(ind_l_wt,no.survey)
+    stop("Survey weighting and number of surveys does not match")
+  }else if((sum(ind_l_wt)/no.survey) != 1){
+    stop("Survey weighting values must sum to 1")
+  }
+  
+  
+  if(missing(start_sigma)) {message("arg: 'start_sigma' missing. Default value used")
+    start_sigma<-start_sigma}
+  
 
   rec_miss<-c(missing(start_rec_a),missing(start_rec_b))
 
-  if(rec_miss[1]==TRUE) {rec_a <- (1/5)*max(catchkg)
+  if(rec_miss[1]==TRUE) {rec_a <- (1/5)*max(catch_b)
   }else rec_a <-start_rec_a
-  if(rec_miss[2]==TRUE) {rec_b <- 4*max(catchkg)
+  if(rec_miss[2]==TRUE) {rec_b <- 4*max(catch_b)
   }else rec_b <-start_rec_b
 
 
@@ -65,23 +81,48 @@ schnute_obserror<-function(version,catchkg,indiceskg,ts, mwts,tsp = 0, rho, W, i
 
 
 
-  dat_tmb<-schnute_datprep(catchkg,indiceskg,ts,mwts,tsp,version,ind_l_wt)
-
+  dat_tmb<-schnute_datprep(catch_b,indices_b,ts,mwts,tsp,version,ind_l_wt)
+  
   if(missing(start_q)){
     start_q <- rep(start_q,no.survey)
-    message("Argument 'start_q' missing. Default start q used for each survey")
-  }else
-
-
-    if(missing(start_indexsigma)){
-      start_indexsigma <- rep(start_indexsigma,no.survey)
-      message("Argument 'start_indexsigma' missing. Default start_indexsigma used for each survey")
-    }else start_indexsigma <-start_indexsigma
-
+    message("arg: 'start_q' missing. Default start q used for each survey")
+  }
+    
+    if(length(start_q) == 1 & no.survey > 1){
+      start_q <- rep(start_q,no.survey)
+      message("start q vector is not the same length as the number of surveys. The given value will be used for each survey")
+    }else if(length(start_q) > 1 & length(start_q) != no.survey) {
+      stop("Error: start_indexsigma vector is not the same length as the number of surveys")
+    }else start_q <-start_q
+  
+  
+  if(missing(start_indexsigma)){
+    start_indexsigma <- rep(start_indexsigma,no.survey)
+    message("arg: 'start_indexsigma' missing. Default start_indexsigma used for each survey")
+  }else start_indexsigma <-start_indexsigma
+  
+  if(length(start_indexsigma) == 1 & no.survey > 1){
+    start_indexsigma <- rep(start_indexsigma,no.survey)
+    message("start_indexsigma vector is not the same length as the number of surveys. The given value will be used for each survey")
+  }else if(length(start_indexsigma) > 1 & length(start_indexsigma) != no.survey) {
+    stop("Error: start_indexsigma vector is not the same length as the number of surveys")
+  }else start_indexsigma <-start_indexsigma
+  
+  if(missing(start_catchsigma)){
+    start_catchsigma <- start_catchsigma
+    message("arg: 'start_catchsigma' missing. Default start_catchsigma used for each survey")
+  }else start_catchsigma <-start_catchsigma
+  
+  if(length(start_catchsigma) > 1 ) {
+    stop("Error: start_catchsigma vector has more than one value")
+  }else start_catchsigma <-start_catchsigma
+  
+  
   if(missing(start_f_calc)) message("Argument 'start_f_calc' missing. Default value used for each year")
 
   if(length(start_f_calc) == 1){
     start_f_calc <- rep(start_f_calc,ny)
+    message("Argument 'start_f_calc' has only one value which will be used for each year")
   }else if(length(start_f_calc) == ny){
     start_f_calc <- start_f_calc
   }else stop("Error: Mismatch in starting f_calc and number of years. Check your starting fishing mortality values")

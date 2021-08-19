@@ -6,7 +6,7 @@ Authors@R: c(
     person("Coilin", "Minto", email = "coilin.minto@gmit.ie", role = c("aut")),
     person("Hans", "Gerritsen", role = c("ctb"))
     )
-Description: Implementations of the stage-based fisheries assessment models CSA and Schnute (1987). Models are those detailed and implemented in the paper .......
+Description: Implementations of the stage-based fisheries assessment models CSA and Schnute (1987). Models are those detailed and implemented in a manuscript currently under review.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -18,5 +18,7 @@ Depends:
     R (>= 2.10)
 Imports: 
     TMB (>= 1.7.18),
-    reshape2
+    reshape2,
+    FLCore,    
+    ggplot2    
 LinkingTo: TMB

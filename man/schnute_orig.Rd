@@ -6,8 +6,8 @@
 \usage{
 schnute_orig(
   version = 2,
-  catchkg,
-  indiceskg,
+  catch_b,
+  indices_b,
   ts,
   mwts,
   tsp = 0,
@@ -27,9 +27,9 @@ schnute_orig(
 \arguments{
 \item{version}{numeric}
 
-\item{catchkg}{numeric}
+\item{catch_b}{numeric}
 
-\item{indiceskg}{matrix}
+\item{indices_b}{matrix}
 
 \item{ts}{numeric}
 

@@ -3,17 +3,17 @@
 
 
 
-schnute_datprep<-function(catchkg,indiceskg,ts, mwts,tsp,version,ind_l_wt){
+schnute_datprep<-function(catch_b,indices_b,ts, mwts,tsp,version,ind_l_wt){
 
 data_tmb <- list(
-  obs_catch = catchkg,
-  obs_ind = indiceskg,
+  obs_catch = catch_b,
+  obs_ind = indices_b,
   indices_class = version,
   indices_ts = ts,
   mean_wts=mwts,
   nu=tsp,
   SRcode=2,
-  spawn_prop=rep(1,length(catchkg)),
+  spawn_prop=rep(1,length(catch_b)),
   l_calc_wt = c(ind_l_wt))
 
 return(data_tmb)

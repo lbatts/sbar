@@ -1,17 +1,21 @@
-#' Stock with similar life histroy traits to hake created with FLife
+#' @name ank78
+#' @title ank78
+#' @description Catch numbers, catch weights, etc. for black-bellied anglerfish stock in the Celtic Sea and oorthern Bay of Biscay
+#' @docType data
+#' @usage ank78
+#' @format an \code{FLStock} object
+#' @author Hans Gerritsen
+#' @examples
 #'
-#' A dataframe conatining all the inmformation from an FLStock object
-#'
-#' @format A data frame 29085 rows and 8 columns
-#' \describe{
-#'   \item{slot}{these are the slots form FLR, e.g. catch.n, catch.wt, m, stock.n, stock....etc.}
-#'   \item{age}{}
-#'   \item{area}{}
-#'   \item{data}{}
-#'   \item{iter}{}
-#'   \item{season}{}
-#'   \item{unit}{}
-#'   \item{year}{}
-#'   ...
-#' }
-"fakehake"
+#' data(ank78)
+#' summary(ank78)
+NULL
+
+#' @name ank78.indices
+#' @title ank78.indices
+#' @description Survey indices for black-bellied anglerfish in the Celtic Sea and northern Bay of Biscay
+#' @docType data
+#' @usage ank78.indices
+#' @format an \code{FLIndices} object
+#' @author Hans Gerritsen
+NULL

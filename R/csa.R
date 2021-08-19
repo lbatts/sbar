@@ -54,30 +54,71 @@ indices_att <- as.matrix(indices_att)
 
   dat_tmb<-csa_datprep(catch_no,indices_no, indices_att, ts, selrec)
 
+  if(missing(start_q)){
+    start_q <- rep(start_q,no.survey)
+    message("arg: 'start_q' missing. Default start q used for each survey")
+  }
+  
   if(length(start_q) == 1 & no.survey > 1){
     start_q <- rep(start_q,no.survey)
-    message("default start q used for each survey")
+    message("start q vector is not the same length as the number of surveys. The given value will be used for each survey")
+  }else if(length(start_q) > 1 & length(start_q) != no.survey) {
+    stop("Error: start_q vector is not the same length as the number of surveys")
   }else start_q <-start_q
-
-
+  
+  if(missing(start_surveycv)) {
+    message("arg: 'start_surveycv' missing. Default value used for each survey")
+    start_surveycv <- rep(start_surveycv,no.survey)
+  }
+  
   if(length(start_surveycv) == 1 & no.survey > 1){
     start_surveycv <- rep(start_surveycv,no.survey)
-    message("default start_surveycv used for each survey")
+    message("start_surveycv vector is not the same length as the number of surveys. The given value will be used for each survey")
+  }else if(length(start_surveycv) > 1 & length(start_surveycv) != no.survey) {
+    stop("Error: start_surveycv vector is not the same length as the number of surveys")
   }else start_surveycv <-start_surveycv
-
+  
+  
+  if(missing(start_catchcv)) {
+    message("arg: 'start_catchcv' missing. Default value used for each survey")
+    start_catchcv <- start_catchcv
+  }
+  
+ if(length(start_catchcv) > 1) {
+    stop("Error: start_catchcv vector has more than one value")
+  }else start_catchcv <-start_catchcv
+  
+  
+  
+  if(missing(start_f_calc)) {
+    message("arg: 'start_f_calc' missing. Default value used for each year")
+    start_f_calc <- rep(start_f_calc,ny)
+  }
+  
   if(length(start_f_calc) == 1){
     start_f_calc <- rep(start_f_calc,ny)
+    message("arg: 'start_f_calc' has length 1 . Given value used for each year")
   }else if(length(start_f_calc) == ny){
     start_f_calc <- start_f_calc
   }else stop("start_f_calc should be length of 1 or number of years")
 
+  
+  
+  if(missing(start_rec)){ message("arg: 'start_rec' missing. Default value used for each year")
+  start_rec <- rep(start_rec,ny)
+}
+  
   if(length(start_rec) == 1){
     start_rec <- rep(start_rec,ny)
+    message("arg: 'start_rec' has length 1 . Given value used for each year")
   }else if(length(start_rec) == ny){
     start_rec <- start_rec
   }else stop("start_rec should be length of 1 or number of years")
 
-
+  
+  if(missing(start_nmort)) {message("arg: 'start_nmort' missing. Default value used")
+    start_nmort<-start_nmort}
+  
 
     par_tmb<-csa_parprep(q = start_q, surveycv = start_surveycv, prec0 = start_prec0 , rec_est = start_rec, nmort = start_nmort, f_calc = start_f_calc, catchcv = start_catchcv,srx = rep(1,ny))
 

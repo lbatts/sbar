@@ -6,8 +6,8 @@
 \usage{
 schnute_obserror(
   version,
-  catchkg,
-  indiceskg,
+  catch_b,
+  indices_b,
   ts,
   mwts,
   tsp = 0,
@@ -31,9 +31,9 @@ schnute_obserror(
 \arguments{
 \item{version}{numeric}
 
-\item{catchkg}{numeric}
+\item{catch_b}{numeric}
 
-\item{indiceskg}{matrix}
+\item{indices_b}{matrix}
 
 \item{ts}{numeric}
 
