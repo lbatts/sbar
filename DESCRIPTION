@@ -22,3 +22,7 @@ Imports:
     FLCore,    
     ggplot2    
 LinkingTo: TMB
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr

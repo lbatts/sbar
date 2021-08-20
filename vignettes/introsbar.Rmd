@@ -1,0 +1,135 @@
+---
+title: "Introduction to sbar"
+author: "Luke Batts"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_document
+bibliography: sbar.bib
+vignette: >
+  %\VignetteIndexEntry{Basic examples of sbar assessments}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+options(rmarkdown.html_vignette.check_title = FALSE)
+```
+
+
+# Introduction
+
+**sbar** is an R package for fitting stage-based fisheries stock assessment models in R.  Assessments are built upon the **Template Model Builder (TMB)** framework, taking advantage of the automatic differentiation of the likelihood [@tmb]. Two theoretically different stage-based assessment approaches are implemented:  
+
+1. **CSA (Catch-Survey Analysis)** - the well-known numbers-based two-stage model
+2. biomass-based delay-difference two-stage models based on the theoretical paper by @schnute1987
+    * **Schnute original process error model**
+    * **Schnute adapted observation error model**
+    
+### General details    
+* Models are fit by maximising the total log-likelihood of the objective function. 
+* In both approaches, surveys and catch (where relevant) are assumed to be log-normally distributed. 
+* Stages (recruits and post-recruits for CSA, recruits and previously exploited biomass for Schnute models) can be defined by the user by age, length or any other grouping that offers distinct stages that move from one to the other over a given time period. **NB** post-recruit stage of CSA and previously exploited stage for Schnute models are analogous. 
+* Assessments are limited to the time period covered by surveys and cannot estimate stock values outside of this.
+
+
+We explore the three models in more detail in their respective vignettes.
+
+### Data and other useful packages
+
+Package vignettes use data collated for ICES and processed by Hans Gerritsen on the black-bellied anglerfish (*Lophius budegassa*) stock in the Celtic Seas and northern Bay of Biscay (ICES Subareas 7, 8a-b and 8d.). Stages are defined by age, giving a simple way to define recruits (age 0) and post-recruits/previously exploited (age 1+). Data is structured as [FLR](https://flr-project.org/) classes and so the appropriate syntax is required. Those unfamiliar with FLR can restructure the S4 objects to dataframes easily if preferred and extract the data. sbar assessments are not built within the FLR framework. 
+
+[TMBhelper](https://github.com/kaskr/TMB_contrib_R/tree/master/TMBhelper) is a very useful package that can be used for optimisation of TMB objective functions, as well as further explore convergence and estimability of parameters. 
+
+
+```{r libraries, echo=TRUE,message=FALSE,warning=FALSE}
+library(sbar)
+library(FLCore)
+library(TMBhelper)
+```
+```{r data}
+data("ank78")
+data("ank78.indices")
+years<-as.character(2003:2020) 
+no.years<-length(years)
+```
+
+
+  
+### CSA
+
+CSA is a numbers-based depletion model first described in @collie1983. The most recent version, which differs somewhat from the original, can be found in the NOAA Fish and Fisheries Toolbox [here](https://nmfs-fish-tools.github.io/CSA/) (where a GUI can be downloaded to run assessments).  Our implementation of the CSA assessment is very similar to the NOAA version with a few minor adjustments to increase the flexibility of the model. These primarily are:
+
+* option for including stand-alone post recruit survey(s)
+* option to estimate survey specific error
+* general flexibility in estimating or fixing certain parameters in the model (e.g. survey CV, catch CV, natural mortality)
+
+#### Quick start CSA
+
+Observations needed for a CSA assessment are catch numbers and a matrix of survey indices (catch numbers per unit effort). A survey split into a recruit index and post-recruit index (i.e. one survey, two indices) is the minimum requirement. In this example we use the combined IBTS survey data that has processed already into number at age. This gives a simple way to define recruits (age 0) and post-recruits (age 1+). 
+
+```{r catch and ind}
+catch.no<-c(colSums(catch.n(ank78)[,years]))
+
+no.ind = 2 
+IBTS_PR_ages<-as.character(range(ank78.indices$FR_IE_IBTS)["min"]+1:range(ank78.indices$FR_IE_IBTS)["max"])
+IBTS_PR_ages
+
+obs <- matrix(NA,nrow=no.ind,ncol=no.years)
+obs[1,] <- c(colSums(index(ank78.indices$FR_IE_IBTS)["0",years],na.rm=T)) 
+obs[2,] <- c(colSums(index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years],na.rm=T)) 
+
+obs[obs==0] <- NA
+```
+
+Many of the settings for running CSA have defaults but the function requires some user defined values. `indices_att` corresponds to `obs`, indicating if indices (each row) are from the same survey (i.e. same number) and what type of indices they are: 
+
+1.    recruit index
+2.    post-recruit index
+3.    undivided index
+
+```{r setup}
+att <- data.frame(survey=c(1,1),type=c(1,2))
+timing <- c(0.875) # survey timing
+nm <- mean(m(ank78)) #natural mortality
+nm
+```
+
+Lets run the assessment with default settings. There's warning messages letting you know that defaults are being used for key inputs.
+
+```{r makeadfun}
+obj <- csa(catch_n = catch.no, indices_no = obs, indices_att = att, ts = timing, start_nmort = nm)
+```
+For those familiar with `TMB`, `csa` is simply a wrapper function that gives the output from `TMB::MakeADFun`, i.e. an objective function with derivatives. We have kept optimisation and extraction of values from the assessments separate to allow flexibility with optimisation methods as well as easy access to TMB outputs such as the hessian, gradients etc. See **TMB** documentation for details.
+
+Optimising with `nlminb` looks like this, note starting values for parameters are already defined in the objective by the `csa` function.
+```{r sdrep}
+opt <- nlminb(start=obj$par,objective=obj$fn,gradient=obj$gr)
+opt$convergence
+opt$par
+obs.srep <- summary(TMB::sdreport(obj))
+```
+`sdreport` gives various outputs for diagnostics but when summarised (to `obs.srep`) gives a matrix with parameters estimated from optimisation, as well as standard deviations of those parameters (estimated within TMB via the delta-method).  There is also many other estimated or calculated values of the assessment with associated error estimates (if relevant) given here. See `csa` documentation and the "CSA" vignette for details. 
+
+If you would like to optimise with `nlminb` there's also a handy function in `TMBhelper` to do the previous step (and more) that gives the practically the same results. See `?TMBhelper::fit_tmb1` for details.
+
+```{r fit_tmb,warning=FALSE,message=FALSE}
+fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
+all.equal(fit$par,opt$par)
+all.equal(fit$objective,opt$objective)
+all.equal(summary(fit$SD),obs.srep)
+```
+### Simple plot of assessment results
+```{r sbarclass,warning=FALSE}
+survnames<- c("IBTS recruits (CPUE)","IBTS post-recruits (CPUE)")
+x<-makesbarclass(obs.srep,survnames,catch.no,obs,years)
+
+plot(x,out="fit")
+plot(x,out="stock")
+
+```
+
+
+
