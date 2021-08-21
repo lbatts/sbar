@@ -2,7 +2,7 @@
 title: "Introduction to sbar"
 author: "Luke Batts"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_document
+output: rmarkdown::html_vignette
 bibliography: sbar.bib
 vignette: >
   %\VignetteIndexEntry{Basic examples of sbar assessments}
