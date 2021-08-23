@@ -147,24 +147,24 @@ In `sbar` we implement two interpretations of the theoretical model proposed by 
 
 Schnute assumes weight does not change through the year so here we choose 'catch weight' within the FLStock to use for every calculation of biomass. This maybe a little confusing at first but makes sense under the model assumptions.
 
-For these 'quick start' we will use `version=2` (which is the default), which requires a matrix of sampled mean weights: recruit (first row), previously exploited biomass (second row) and entire assessed biomass mean weight (third row) for each year of the assessment. Ideally mean weights should from a sample that is not affected by selectivity (i.e. usually catch has lower selectivity in smaller fish), so in this example we use survey numbers to calculate mean weights as they're less likely to be (as) biased.
+For these 'quick start' we will use `version=2` (which is the default), which requires a matrix of sampled mean weights: recruit mean weights $\bar{Y}$ (first row), previously exploited biomass mean weights $\bar{Z}$ (second row) and entire assessed biomass mean weight $\bar{X}$ (third row) for each year of the assessment. Ideally mean weights should from a sample that is not affected by selectivity (i.e. usually catch has lower selectivity in smaller fish), so in this example we use survey numbers to calculate mean weights as they're less likely to be (as) biased.
 
 For example: 
 ```{r mean weights schn}
-rec_mw <- c(quantSums(catch.wt(ank78)["0",years]*index(ank78.indices$FR_IE_IBTS)["0",years])/quantSums(index(ank78.indices$FR_IE_IBTS)[1,years]))
-pe_mw <- c(quantSums(catch.wt(ank78)[IBTS_PR_ages,years]*index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years]))
-mw <- c(quantSums(catch.wt(ank78)[,years]*index(ank78.indices$FR_IE_IBTS)[,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[,years]))
+Y <- c(quantSums(catch.wt(ank78)["0",years]*index(ank78.indices$FR_IE_IBTS)["0",years])/quantSums(index(ank78.indices$FR_IE_IBTS)[1,years]))
+Z <- c(quantSums(catch.wt(ank78)[IBTS_PR_ages,years]*index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years]))
+X <- c(quantSums(catch.wt(ank78)[,years]*index(ank78.indices$FR_IE_IBTS)[,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[,years]))
 
 mwts <- matrix(NA,ncol=no.years,nrow=3)
-mwts[1,] <- rec_mw
-mwts[2,] <- pe_mw
-mwts[3,] <- mw
+mwts[1,] <- Y
+mwts[2,] <- Z
+mwts[3,] <- X
 ```
 ```{r mwts plot1, echo = FALSE,fig.align='center',fig.cap="Mean weights of stages and entire assessed population of ank78 from the combined IBTS survey"}
-plot(y=rec_mw,x=years,type="b",ylim=c(0,1.5),ylab="mean wight (kg)")
-lines(y=pe_mw,x=years,col=2,type="b")
-lines(y=mw,x=years,col=3,type="b")
-legend("topright", legend = c("rec_mw (recruit mean wt)", "pe_mw (previously exploited biomass mean wt)", "mw (Total biomass mean wt)"), col = 1:3, lty = 1,cex=0.5)
+plot(y=Y,x=years,type="b",ylim=c(0,1.5),ylab="mean wight (kg)")
+lines(y=Z,x=years,col=2,type="b")
+lines(y=X,x=years,col=3,type="b")
+legend("topright", legend = c("Y (recruit mean wt)", "Z (previously exploited biomass mean wt)", "X (Total biomass mean wt)"), col = 1:3, lty = 1,cex=0.5)
 ```
 
 There's an issue in 2017 as there's no survey data for this year, so we add means
@@ -176,10 +176,10 @@ mwts[,15] <- rowSums(mwts,na.rm=T)/(no.years-1)
 plot(y = mwts[1,],x = years,type = "b",ylim = c(0,1.5), ylab = "mean wight (kg)")
 lines(y = mwts[2,],x = years,col = 2,type = "b")
 lines(y = mwts[3,],x = years,col = 3,type = "b")
-legend("topright", legend = c("rec_mw (recruit mean wt)", "pe_mw (previously exploited biomass mean wt)", "mw (Total biomass mean wt)"), col = 1:3, lty = 1,cex=0.5)
+legend("topright", legend = c("rec_mw (recruit mean wt)", "Z (previously exploited biomass mean wt)", "X (Total biomass mean wt)"), col = 1:3, lty = 1,cex=0.5)
 ```
 
-Next we need growth parameters. This aspect is discussed in more detail in the schnute vignette but for now just note that we fit a linear model to overall mean weights and previously exploited mean weights ($pe\_mw_{t+1}$ vs $mw_t$)
+Next we need growth parameters. This aspect is discussed in more detail in the schnute vignette but for now just note that we fit a linear model to overall mean weights and previously exploited mean weights ($\bar{Z}_{t+1}$ vs $\bar{X}_t$)
 
 ```{r growth}
 mod <- stats::lm(mwts[2,2:no.years]~mwts[3,1:no.years-1])

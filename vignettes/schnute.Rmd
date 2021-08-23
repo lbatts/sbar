@@ -2,7 +2,7 @@
 title: "Schnute models"
 author: "Luke Batts"
 date: "`r Sys.Date()`"
-output: rmarkdown::pdf_document
+output: rmarkdown::html_document
 bibliography: sbar.bib
 vignette: >
   %\VignetteIndexEntry{Schnunte models in more detail}
@@ -36,17 +36,17 @@ data("ank78.indices")
 years<-as.character(2003:2020) 
 no.years<-length(years)
 IBTS_PR_ages<-as.character(range(ank78.indices$FR_IE_IBTS)["min"]+1:range(ank78.indices$FR_IE_IBTS)["max"])
-IEmon_PR_ages<-ac(range(tun$IE_MONKSURVEY)["min"]+1:range(tun$IE_MONKSURVEY)["max"])
-IEmon_yearrange<-ac(range(tun$IE_MONKSURVEY)["minyear"]:range(tun$IE_MONKSURVEY)["maxyear"])
+IEmon_full_ages<-ac(range(ank78.indices$IE_MONKSURVEY)["min"]:range(ank78.indices$IE_MONKSURVEY)["max"])
+IEmon_yearrange<-ac(range(ank78.indices$IE_MONKSURVEY)["minyear"]:range(ank78.indices$IE_MONKSURVEY)["maxyear"])
 
-rec_mw <- c(quantSums(catch.wt(ank78)["0",years]*index(ank78.indices$FR_IE_IBTS)["0",years])/quantSums(index(ank78.indices$FR_IE_IBTS)[1,years]))
-pe_mw <- c(quantSums(catch.wt(ank78)[IBTS_PR_ages,years]*index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years]))
-mw <- c(quantSums(catch.wt(ank78)[,years]*index(ank78.indices$FR_IE_IBTS)[,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[,years]))
+Y <- c(quantSums(catch.wt(ank78)["0",years]*index(ank78.indices$FR_IE_IBTS)["0",years])/quantSums(index(ank78.indices$FR_IE_IBTS)[1,years]))
+Z <- c(quantSums(catch.wt(ank78)[IBTS_PR_ages,years]*index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years]))
+X <- c(quantSums(catch.wt(ank78)[,years]*index(ank78.indices$FR_IE_IBTS)[,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[,years]))
 
 mwts <- matrix(NA,ncol=no.years,nrow=3)
-mwts[1,] <- rec_mw
-mwts[2,] <- pe_mw
-mwts[3,] <- mw
+mwts[1,] <- Y
+mwts[2,] <- Z
+mwts[3,] <- X
 mwts[,15] <- rowSums(mwts,na.rm=T)/(no.years-1)
 ```
 ## Growth and estimating growth parameters
@@ -69,7 +69,41 @@ X^{'}_t = W + \rho \bar{X_t} = \bar{Z}_{t+1}
 \end{aligned}
 $$
 
-This equation states that the entire population sampled mean weight $(\bar{X})$ in time _t_, after a year of growth, will be equivalent to the sampled mean weight of the previously-exploited population $(\bar{Z})$ in time _t+1_.  This relationship enables the estimation of the parameters _W_ and $\rho$  prior to assessment model by fitting a simple linear model where $\bar{X}_t$ and $\bar{Z}_{t+1}$ are generally calculated from the chosen weight intervals applied to the catch data. When fitting these linear models prior to running the assessments, residuals were assumed to be normally distributed.
+This equation states that the entire population sampled mean weight $(\bar{X})$ in time _t_, after a year of growth, will be equivalent to the sampled mean weight of the previously-exploited population $(\bar{Z})$ in time _t+1_.  This relationship enables the estimation of the parameters _W_ and $\rho$  prior to assessment model by fitting a simple linear model where $\bar{X}_t$ and $\bar{Z}_{t+1}$ are generally calculated from the chosen weight intervals applied to sampling data.
+
+We encourage users to try both these methods, however simulation testing indicated that the latter methodology to estimate growth parameters from $\bar{Z}$ and $\bar{X}$ is a better approximation of the deterministic growth assumed within the models. 
+
+We estimate growth parameters like so,
+
+```{r growth}
+mod <- stats::lm(mwts[2,2:no.years]~mwts[3,1:no.years-1])
+W1 <- coef(mod)[1]
+rho1 <- coef(mod)[2]
+```
+visaully this looks like,
+
+```{r mwts plot2, echo = FALSE,fig.align='center'}
+plot(X[-18], Z[-1],ylim=c(0,1.5),ylab="Z_t+1",xlab="X_t")#,xlim==c(0,3))
+abline(c(W1, rho1))
+legend("topright", legend = c("linear model"), col = 1, lty = 1,cex=0.5)
+```
+
+
+```{r catch survey}
+catch_kg <- c(colSums(catch.n(ank78)[,years]*catch.wt(ank78)[,years],na.rm=T))
+index1 <- colSums(index(ank78.indices$FR_IE_IBTS)*catch.wt(ank78)[,years],na.rm=T)
+index2 <- colSums(index(ank78.indices$IE_MONKSURVEY)*catch.wt(ank78)[IEmon_full_ages,IEmon_yearrange],na.rm=T)
+
+obs <- matrix(NA,nrow=2,ncol=no.years)
+obs[1,]<-index1 # 
+obs[2,4:no.years]<-index2 # 
+obs[obs==0]<-NA
+sigma_st <- exp(-0.25) # the accepted  stationary natural mortality of the stock is 0.25
+```
+
+Lets load all the data and defined arguments for the assessment into a list
+
+
 
 
 
