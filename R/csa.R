@@ -2,26 +2,30 @@
 #'
 #' Create an object with TMB framework, including data, gradients and NLL function that can be optimised
 #'
-#' @param catch_no numeric
-#' @param indices_no matrix
-#' @param indices_att matrix
-#' @param ts numeric
-#' @param selrec numeric
-#' @param start_q numeric
-#' @param start_surveycv numeric
-#' @param start_prec0 numeric
-#' @param start_rec numeric
-#' @param start_nmort numeric
-#' @param start_f_calc numeric
-#' @param start_catchcv numeric
+#' @param catch_no numeric vector of catch numbers over time period of assessment
+#' @param indices_no matrix of survey indices of dimensions: no. of indices x no.years
+#' @param indices_att matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like:
+#' Survey\ Type
+#' ------\ -----
+#'    1  \   1
+#'    1  \   2
+#' @param ts numeric. Survey timing parameters
+#' @param selrec matrix of selection differences in the recruit indices if known. Dimensions: no. of recruit indices x no. years. Defaults to 1 for all years (i.e. no difference between recruit and post-recruit indices of a survey)
+#' @param start_q Starting values for survey catchbility parameters. Default is 1e-6
+#' @param start_surveycv Starting values for survey cv parameters. Default is 0.1
+#' @param start_prec0 Starting parameter value for post-recruit numbers at first time step. Default is 4*max(catch.no).
+#' @param start_rec Starting parameter values for estimated recruit numbers. Default is 2*max(catch.no).
+#' @param start_nmort Starting parameter value for natural mortality. Default is 0.2
+#' @param start_f_calc Starting parameter values for estimated fishing mortality. Default is 0.3.
+#' @param start_catchcv  Starting parameter value for catch cv. Default is 0.1
 #' @param fix_nmort logical
 #' @param fix_prec0 logical
 #' @param fix_surveycv logical
 #' @param fix_catchcv logical
-#' @return list
+#' @return List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
 #' @export
 #' @examples
-# #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
+# #' See vignettes for examples
 
 
 csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, start_surveycv = 0.1 ,start_prec0, start_rec, start_nmort = 0.2 , start_f_calc = 0.3, start_catchcv = 0.1, fix_nmort = TRUE, fix_prec0 = FALSE, fix_surveycv = FALSE, fix_catchcv = TRUE){
@@ -50,13 +54,13 @@ csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, star
   }
   
   if(missing(selrec)) {
-    message("arg: 'selrec' missing. Recruits survey assumed fully selected")
+    message("Argument 'selrec' missing. Recruits survey assumed fully selected")
     selrec <- matrix(selrec,nrow=nr,ncol=ny)
   }
   
   if(length(selrec) == 1){
     selrec <- matrix(selrec,nrow=nr,ncol=ny)
-    message("arg: 'selrec' has length 1 . Given value used for each year")
+    message("Argument 'selrec' has length 1 . Given value used for each year")
   }else if(dim(selrec)[1] == nr & dim(selrec)[2] == ny ){
     selrec <- as.matrix(selrec)
   }else stop("selrec should be length of 1 or matrix of dim number of recruit indices x number of years")
@@ -70,7 +74,7 @@ indices_att <- as.matrix(indices_att)
 
   if(missing(start_q)){
     start_q <- rep(start_q,no.survey)
-    message("arg: 'start_q' missing. Default start q used for each survey")
+    message("Argument 'start_q' missing. Default start q used for each survey")
   }
   
   if(length(start_q) == 1 & no.survey > 1){
@@ -81,7 +85,7 @@ indices_att <- as.matrix(indices_att)
   }else start_q <-start_q
   
   if(missing(start_surveycv)) {
-    message("arg: 'start_surveycv' missing. Default value used for each survey")
+    message("Argument 'start_surveycv' missing. Default value used for each survey")
     start_surveycv <- rep(start_surveycv,no.survey)
   }
   
@@ -94,7 +98,7 @@ indices_att <- as.matrix(indices_att)
   
   
   if(missing(start_catchcv)) {
-    message("arg: 'start_catchcv' missing. Default value used for each survey")
+    message("Argument 'start_catchcv' missing. Default value used for each survey")
     start_catchcv <- start_catchcv
   }
   
@@ -105,13 +109,13 @@ indices_att <- as.matrix(indices_att)
   
   
   if(missing(start_f_calc)) {
-    message("arg: 'start_f_calc' missing. Default value used for each year")
+    message("Argument 'start_f_calc' missing. Default value used for each year")
     start_f_calc <- rep(start_f_calc,ny)
   }
   
   if(length(start_f_calc) == 1){
     start_f_calc <- rep(start_f_calc,ny)
-    message("arg: 'start_f_calc' has length 1 . Given value used for each year")
+    message("Argument 'start_f_calc' has length 1 . Given value used for each year")
   }else if(length(start_f_calc) == ny){
     start_f_calc <- start_f_calc
   }else stop("start_f_calc should be length of 1 or number of years")

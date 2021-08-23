@@ -24,29 +24,33 @@ csa(
 )
 }
 \arguments{
-\item{catch_no}{numeric}
+\item{catch_no}{numeric vector of catch numbers over time period of assessment}
 
-\item{indices_no}{matrix}
+\item{indices_no}{matrix of survey indices of dimensions: no. of indices x no.years}
 
-\item{indices_att}{matrix}
+\item{indices_att}{matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like:
+Survey\ Type
+------\ -----
+1  \   1
+1  \   2}
 
-\item{ts}{numeric}
+\item{ts}{numeric. Survey timing parameters}
 
-\item{selrec}{numeric}
+\item{selrec}{matrix of selection differences in the recruit indices if known. Dimensions: no. of recruit indices x no. years. Defaults to 1 for all years (i.e. no difference between recruit and post-recruit indices of a survey)}
 
-\item{start_q}{numeric}
+\item{start_q}{Starting values for survey catchbility parameters. Default is 1e-6}
 
-\item{start_surveycv}{numeric}
+\item{start_surveycv}{Starting values for survey cv parameters. Default is 0.1}
 
-\item{start_prec0}{numeric}
+\item{start_prec0}{Starting parameter value for post-recruit numbers at first time step. Default is 4*max(catch.no).}
 
-\item{start_rec}{numeric}
+\item{start_rec}{Starting parameter values for estimated recruit numbers. Default is 2*max(catch.no).}
 
-\item{start_nmort}{numeric}
+\item{start_nmort}{Starting parameter value for natural mortality. Default is 0.2}
 
-\item{start_f_calc}{numeric}
+\item{start_f_calc}{Starting parameter values for estimated fishing mortality. Default is 0.3.}
 
-\item{start_catchcv}{numeric}
+\item{start_catchcv}{Starting parameter value for catch cv. Default is 0.1}
 
 \item{fix_nmort}{logical}
 
@@ -57,7 +61,7 @@ csa(
 \item{fix_catchcv}{logical}
 }
 \value{
-list
+List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
 }
 \description{
 Create an object with TMB framework, including data, gradients and NLL function that can be optimised
