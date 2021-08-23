@@ -60,7 +60,7 @@ no.years<-length(years)
 
 
   
-### CSA
+## CSA
 
 CSA is a numbers-based depletion model first described in @collie1983. The most recent version, which differs somewhat from the original, can be found in the NOAA Fish and Fisheries Toolbox [here](https://nmfs-fish-tools.github.io/CSA/) (where a GUI can be downloaded to run assessments).  Our implementation of the CSA assessment is very similar to the NOAA version with a few minor adjustments to increase the flexibility of the model. These primarily are:
 
@@ -68,7 +68,7 @@ CSA is a numbers-based depletion model first described in @collie1983. The most 
 * option to estimate survey specific error
 * general flexibility in estimating or fixing certain parameters in the model (e.g. survey CV, catch CV, natural mortality)
 
-#### Quick start CSA
+### Quick start CSA
 
 Observations needed for a CSA assessment are catch numbers and a matrix of survey indices (catch numbers per unit effort). A survey split into a recruit index and post-recruit index (i.e. one survey, two indices) is the minimum requirement. In this example we use the combined IBTS survey data that has processed already into number at age. This gives a simple way to define recruits (age 0) and post-recruits (age 1+). 
 
@@ -115,7 +115,7 @@ obs.srep <- summary(TMB::sdreport(obj))
 ```
 `sdreport` gives various outputs for diagnostics but when summarised (to `obs.srep`) gives a matrix with parameters estimated from optimisation, as well as standard deviations of those parameters (estimated within TMB via the delta-method).  There is also many other estimated or calculated values of the assessment with associated error estimates (if relevant) given here. See `csa` documentation and the "CSA" vignette for details. 
 
-If you would like to optimise with `nlminb` there's also a handy function in `TMBhelper` to do the previous step (and more) that gives the practically the same results. See `?TMBhelper::fit_tmb1` for details.
+If you would like to optimise with `nlminb` there's also a handy function in `TMBhelper` to do the previous step (and more) that gives the practically the same results. See `?TMBhelper::fit_tmb` for details.
 
 ```{r fit_tmb,warning=FALSE,message=FALSE}
 fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
@@ -123,7 +123,7 @@ all.equal(fit$par,opt$par)
 all.equal(fit$objective,opt$objective)
 all.equal(summary(fit$SD),obs.srep)
 ```
-### Simple plot of assessment results
+### Simple plot of CSA results
 ```{r sbarclass,warning=FALSE}
 survnames<- c("IBTS recruits (CPUE)","IBTS post-recruits (CPUE)")
 x <- makesbarclass(obs.srep,survnames,catch.no,obs,years)
@@ -134,7 +134,7 @@ plot(x,out="stock")
 ```
 
   
-### Schnute models
+## Schnute models
 
 @schnute1987 describes a size -based delay-difference model linking population size structure and mean weights. Growth is assumed to be deterministic and occurs at the end of the year. Mean weights are assumed to not vary throughout the year. 
 
@@ -143,7 +143,7 @@ An interesting aspect of this approach is that it offers flexibility in the assu
 In `sbar` we implement two interpretations of the theoretical model proposed by @schnute1987. The first which we call the Schnute original process error model (run with `schnute_orig`), which has an autoregressive process error and takes catch biomass as known. The other model we call the Schnute adapted observation error model (run with `schnute_obserror`), which fits to survey and catch biomass. Details of the differences can be found in the schnute vignette.
 
 
-#### Quick start Schnute
+### Quick start Schnute
 
 Schnute assumes weight does not change through the year so here we choose 'catch weight' within the FLStock to use for every calculation of biomass. This maybe a little confusing at first but makes sense under the model assumptions.
 
@@ -201,7 +201,7 @@ sigma_st <- exp(-nm)
 
 sigma is survival (i.e. the proportion of the population that survives natural mortality), where sigma = $e^{-nm}$. 
 
-#### Schnute original process error - quick start
+### Schnute original process error - quick start
 
 Note above that we've added a mean value to the survey index, for demonstration purposes. 2017 is missing survey data and unfortunatley because of the nature of the process error within the model, the Schnute original process error model cannot run with missing survey data.
 
@@ -212,16 +212,17 @@ obj<-schnute_orig(catch_b = catch_kg, indices_b = obs, ts = timing, mwts = mwts,
 fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
 obs.srep<-summary(fit$SD)
 ```
-### Simple plot of assessment results
+
 ```{r sbarclass schnute,warning=FALSE}
 survnames<- c("IBTS biomass (CPUE)")
 x <- makesbarclass(obs.srep,survnames,catch_kg,obs,years)
 
 plot(x,out="stock")
 ```
+
 After the quick plot we can see the predicted biomass values from the assessment have a huge amount of error associated with them (the grey shading), so this probably isn't a very good assessment and requires further investigation!
 
-##### Schnute adapted observation error - quick start
+### Schnute adapted observation error - quick start
 
 We can run the Schnute adapted observation error assessment with the same data. Again there is a number of defaults which we will leave for this example but will explore in the schnute vignette. An important point here is that the assessment can deal with missing survey data so firstly we change the 2017 value for the survey back to NA, as predicting without this data is preferable to adding a mean value.
 
@@ -230,7 +231,9 @@ obj<-schnute_obserror(catch_b = catch_kg, indices_b = obs, ts = timing, mwts = m
 fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
 obs.srep<-summary(fit$SD)
 ```
-### Simple plot of assessment results
+
+Check out the fits and stock predictions 
+
 ```{r sbarclass schnute 2,warning=FALSE}
 survnames<- c("IBTS biomass (CPUE)")
 x <- makesbarclass(obs.srep,survnames,catch_kg,obs,years)

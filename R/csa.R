@@ -1,17 +1,16 @@
 #' Prepare list for CSA assessment to be used in optimiser
 #'
-#' Create an object with TMB framework, including data, gradients and NLL function that can be optimised
+#' Create list with TMB framework, including data, gradients and NLL function for a CSA assessment that can be optimised.
 #'
 #' @param catch_no numeric vector of catch numbers over time period of assessment
 #' @param indices_no matrix of survey indices of dimensions: no. of indices x no.years
-#' @param indices_att matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like:
-#' Survey\ Type
-#' ------\ -----
-#'    1  \   1
-#'    1  \   2
+#' @param indices_att matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like: \tabular{cc}{
+#' 1 \tab 1\cr
+#' 1 \tab 2}
+
 #' @param ts numeric. Survey timing parameters
-#' @param selrec matrix of selection differences in the recruit indices if known. Dimensions: no. of recruit indices x no. years. Defaults to 1 for all years (i.e. no difference between recruit and post-recruit indices of a survey)
-#' @param start_q Starting values for survey catchbility parameters. Default is 1e-6
+#' @param selrec matrix of selection proportions of the recruit indices (in comparison to the post-recruit index) if known. Dimensions: no. of recruit indices x no. years. Defaults to 1 for all years (i.e. no difference between recruit and post-recruit indices of a survey)
+#' @param start_q Starting values for survey catchability parameters. Default is 1e-6
 #' @param start_surveycv Starting values for survey cv parameters. Default is 0.1
 #' @param start_prec0 Starting parameter value for post-recruit numbers at first time step. Default is 4*max(catch.no).
 #' @param start_rec Starting parameter values for estimated recruit numbers. Default is 2*max(catch.no).
@@ -24,8 +23,8 @@
 #' @param fix_catchcv logical
 #' @return List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
 #' @export
-#' @examples
-# #' See vignettes for examples
+#' @example 
+# #' 
 
 
 csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, start_surveycv = 0.1 ,start_prec0, start_rec, start_nmort = 0.2 , start_f_calc = 0.3, start_catchcv = 0.1, fix_nmort = TRUE, fix_prec0 = FALSE, fix_surveycv = FALSE, fix_catchcv = TRUE){
@@ -54,7 +53,7 @@ csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, star
   }
   
   if(missing(selrec)) {
-    message("Argument 'selrec' missing. Recruits survey assumed fully selected")
+    message("Argument 'selrec' missing. Recruits index/indices assumed fully selected")
     selrec <- matrix(selrec,nrow=nr,ncol=ny)
   }
   
@@ -158,8 +157,11 @@ indices_att <- as.matrix(indices_att)
       silent = TRUE,
       DLL = "sbar_TMBExports")
 
+    if(!is.finite(obj$fn(obj$par))){
 
-  return(obj)
+      stop("Objective function is not finite so will not work in an optimiser. Try diffrent starting parameters.")
+    
+  }else return(obj)
 
 
 

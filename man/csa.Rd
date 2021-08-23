@@ -28,17 +28,15 @@ csa(
 
 \item{indices_no}{matrix of survey indices of dimensions: no. of indices x no.years}
 
-\item{indices_att}{matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like:
-Survey\ Type
-------\ -----
-1  \   1
-1  \   2}
+\item{indices_att}{matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like: \tabular{cc}{
+1 \tab 1\cr
+1 \tab 2}}
 
 \item{ts}{numeric. Survey timing parameters}
 
-\item{selrec}{matrix of selection differences in the recruit indices if known. Dimensions: no. of recruit indices x no. years. Defaults to 1 for all years (i.e. no difference between recruit and post-recruit indices of a survey)}
+\item{selrec}{matrix of selection proportions of the recruit indices (in comparison to the post-recruit index) if known. Dimensions: no. of recruit indices x no. years. Defaults to 1 for all years (i.e. no difference between recruit and post-recruit indices of a survey)}
 
-\item{start_q}{Starting values for survey catchbility parameters. Default is 1e-6}
+\item{start_q}{Starting values for survey catchability parameters. Default is 1e-6}
 
 \item{start_surveycv}{Starting values for survey cv parameters. Default is 0.1}
 
@@ -64,5 +62,5 @@ Survey\ Type
 List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
 }
 \description{
-Create an object with TMB framework, including data, gradients and NLL function that can be optimised
+Create list with TMB framework, including data, gradients and NLL function for a CSA assessment that can be optimised.
 }

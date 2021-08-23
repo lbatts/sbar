@@ -1,8 +1,11 @@
 ---
-title: "schnute"
-output: rmarkdown::html_vignette
+title: "Schnute models"
+author: "Luke Batts"
+date: "`r Sys.Date()`"
+output: rmarkdown::pdf_document
+bibliography: sbar.bib
 vignette: >
-  %\VignetteIndexEntry{schnute}
+  %\VignetteIndexEntry{Schnunte models in more detail}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,8 +15,61 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+options(rmarkdown.pdf_vignette.check_title = FALSE)
 ```
+# Model aspects in more detail
 
-```{r setup}
+In this vignette we will go into a little more detail into certain aspects of the Schnute models implemented within `sbar`.  To demonstrate these aspects we'll run through an assessment with the more complex Schnute adapted observation error model of black-bellied anglerfish stock introduced in the **introsbar** vignette
+
+##Load the data and get mean weights matrix
+
+In this example we'll also try to fit to an additional survey which is the IE-IAMS monkfish and megrim survey. This survey runs from 2006 to 2020 but has quite a few missing years.
+
+Remember in the **introsbar** vignette we use the IBTS survey for mean weights as this is the closest to unbias mean weights estimates we can get. Catch is likely to be too biased. Also a reminder that there's no survey data for IBTS in 2017, this isn't an issue for this assessment with the survey observations but we still need a fully populated mean weight matrix, so we fill 2017 column with `rowMeans`.
+
+```{r libraries data, echo=TRUE,message=FALSE,warning=FALSE}
 library(sbar)
+library(FLCore)
+library(TMBhelper)
+data("ank78")
+data("ank78.indices")
+years<-as.character(2003:2020) 
+no.years<-length(years)
+IBTS_PR_ages<-as.character(range(ank78.indices$FR_IE_IBTS)["min"]+1:range(ank78.indices$FR_IE_IBTS)["max"])
+IEmon_PR_ages<-ac(range(tun$IE_MONKSURVEY)["min"]+1:range(tun$IE_MONKSURVEY)["max"])
+IEmon_yearrange<-ac(range(tun$IE_MONKSURVEY)["minyear"]:range(tun$IE_MONKSURVEY)["maxyear"])
+
+rec_mw <- c(quantSums(catch.wt(ank78)["0",years]*index(ank78.indices$FR_IE_IBTS)["0",years])/quantSums(index(ank78.indices$FR_IE_IBTS)[1,years]))
+pe_mw <- c(quantSums(catch.wt(ank78)[IBTS_PR_ages,years]*index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years]))
+mw <- c(quantSums(catch.wt(ank78)[,years]*index(ank78.indices$FR_IE_IBTS)[,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[,years]))
+
+mwts <- matrix(NA,ncol=no.years,nrow=3)
+mwts[1,] <- rec_mw
+mwts[2,] <- pe_mw
+mwts[3,] <- mw
+mwts[,15] <- rowSums(mwts,na.rm=T)/(no.years-1)
 ```
+## Growth and estimating growth parameters
+
+If information on growth is available and weights-at-age are available these can be used (as is common for delay-difference models) to estimate growth parameters with a linear model, 
+
+$$
+\begin{aligned}
+\bar{w}_{a+1} = W + \rho \bar{w}_{a} \\
+\end{aligned}
+$$
+
+where $\bar{w}_a$ is the estimated weight-at-age and $\bar{w}_{a+1}$ is the weight-at-age a year older from sampling.
+
+Another option, suggested as a check by @schnute1987, can be used to estimate growth parameters through estimation of a linear model on overall mean weights and previously-exploited stage mean weights from sampling:
+
+$$
+\begin{aligned}
+X^{'}_t = W + \rho \bar{X_t} = \bar{Z}_{t+1} 
+\end{aligned}
+$$
+
+This equation states that the entire population sampled mean weight $(\bar{X})$ in time _t_, after a year of growth, will be equivalent to the sampled mean weight of the previously-exploited population $(\bar{Z})$ in time _t+1_.  This relationship enables the estimation of the parameters _W_ and $\rho$  prior to assessment model by fitting a simple linear model where $\bar{X}_t$ and $\bar{Z}_{t+1}$ are generally calculated from the chosen weight intervals applied to the catch data. When fitting these linear models prior to running the assessments, residuals were assumed to be normally distributed.
+
+
+
