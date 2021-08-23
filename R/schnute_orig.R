@@ -20,6 +20,7 @@
 #' @param fix_sigma logical
 #' @param fix_indexsigma logical
 #' @return list
+#' Details of the object returned can be found in the schnute vignette
 #' @export
 #' @examples
 # #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
@@ -27,8 +28,7 @@
 
 schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 , start_sigma = exp(-0.2), start_rec_a, start_rec_b, fix_sigma = TRUE,fix_indexsigma = FALSE){
 
-  sb0 <- 5*max(catch_b)
-  ny <- length(catch_b)
+   ny <- length(catch_b)
   no.survey <- dim(indices_b)[1]
 
 
@@ -53,18 +53,18 @@ schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5,
   
   
   
-  if(missing(start_sigma)) {message("arg: 'start_sigma' missing. Default value used")
+  if(missing(start_sigma)) {message("Argument 'start_sigma' missing. Default value used")
     start_sigma<-start_sigma}
   
-  
   rec_miss<-c(missing(start_rec_a),missing(start_rec_b))
-
+  
   if(rec_miss[1]==TRUE) {rec_a <- (1/5)*max(catch_b)
+  message("Argument 'start_rec_a' missing. Default value used")
   }else rec_a <-start_rec_a
-
+  
   if(rec_miss[2]==TRUE) {rec_b <- 4*max(catch_b)
+  message("Argument 'start_rec_b' missing. Default value used")
   }else rec_b <-start_rec_b
-
 
   if(version==2 & any(rec_miss==FALSE)) {
     warning("Argument 'version' == 2 cannot estimate recruitment parameters, starting parameters for recruitment ignored")
@@ -80,12 +80,12 @@ schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5,
 
   if(missing(start_q)){
     start_q <- rep(start_q,no.survey)
-    message("arg: 'start_q' missing. Default start q used for each survey")
+    message("Argument 'start_q' missing. Default start q used for each survey")
   }else 
     
     if(length(start_q) == 1 & no.survey > 1){
       start_q <- rep(start_q,no.survey)
-      message("start q vector is not the same length as the number of surveys. The given value will be used for each survey")
+      message("Argument 'start q' vector is not the same length as the number of surveys. The given value will be used for each survey")
     }else if(length(start_q) > 1 & length(start_q) != no.survey) {
       stop("Error: start_indexsigma vector is not the same length as the number of surveys")
       }else start_q <-start_q
@@ -93,12 +93,12 @@ schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5,
 
   if(missing(start_indexsigma)){
     start_indexsigma <- rep(start_indexsigma,no.survey)
-    message("arg: 'start_indexsigma' missing. Default start_indexsigma used for each survey")
+    message("Argument 'start_indexsigma' missing. Default start_indexsigma used for each survey")
   }else start_indexsigma <-start_indexsigma
 
   if(length(start_indexsigma) == 1 & no.survey > 1){
     start_indexsigma <- rep(start_indexsigma,no.survey)
-    message("start_indexsigma vector is not the same length as the number of surveys. The given value will be used for each survey")
+    message("Argument 'start_indexsigma' vector is not the same length as the number of surveys. The given value will be used for each survey")
   }else if(length(start_indexsigma) > 1 & length(start_indexsigma) != no.survey) {
     stop("Error: start_indexsigma vector is not the same length as the number of surveys")
   }else start_indexsigma <-start_indexsigma

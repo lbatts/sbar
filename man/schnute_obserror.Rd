@@ -5,7 +5,7 @@
 \title{Prepare list for SChnute assessment in an optimiser}
 \usage{
 schnute_obserror(
-  version,
+  version = 2,
   catch_b,
   indices_b,
   ts,
@@ -16,7 +16,7 @@ schnute_obserror(
   ind_l_wt = 1,
   start_q = 1e-08,
   start_indexsigma = 0.1,
-  start_B0 = sb0,
+  start_B0,
   start_sigma = exp(-0.2),
   start_f_calc = 0.3,
   start_rec_a,

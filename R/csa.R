@@ -24,10 +24,10 @@
 # #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
 
 
-csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, start_surveycv = 0.1 ,start_prec0 = spr0, start_rec = srec, start_nmort = 0.2 , start_f_calc = 0.3, start_catchcv = 0.1, fix_nmort = TRUE, fix_prec0 = FALSE, fix_surveycv = FALSE, fix_catchcv = TRUE){
+csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, start_surveycv = 0.1 ,start_prec0, start_rec, start_nmort = 0.2 , start_f_calc = 0.3, start_catchcv = 0.1, fix_nmort = TRUE, fix_prec0 = FALSE, fix_surveycv = FALSE, fix_catchcv = TRUE){
 
-  spr0 <- 4*max(catch_no)
-  srec <- 2*max(catch_no)
+  
+  
   ny <- length(catch_no)
   no.index <- dim(indices_no)[1]
   no.survey <- length(unique(indices_att[,1]))
@@ -51,11 +51,11 @@ csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, star
   
   if(missing(selrec)) {
     message("arg: 'selrec' missing. Recruits survey assumed fully selected")
-    selrec <- matrix(selrec,nrow=nr,ncol=no.years)
+    selrec <- matrix(selrec,nrow=nr,ncol=ny)
   }
   
   if(length(selrec) == 1){
-    selrec <- matrix(selrec,nrow=nr,ncol=no.years)
+    selrec <- matrix(selrec,nrow=nr,ncol=ny)
     message("arg: 'selrec' has length 1 . Given value used for each year")
   }else if(dim(selrec)[1] == nr & dim(selrec)[2] == ny ){
     selrec <- as.matrix(selrec)
@@ -116,21 +116,24 @@ indices_att <- as.matrix(indices_att)
     start_f_calc <- start_f_calc
   }else stop("start_f_calc should be length of 1 or number of years")
 
+  if(missing(start_prec0)){ message("Argument 'start_prec0' missing. Default value used")
+    start_prec0 <- 4*max(catch_no)
+  }else start_prec0 <- start_prec0 
   
   
-  if(missing(start_rec)){ message("arg: 'start_rec' missing. Default value used for each year")
-  start_rec <- rep(start_rec,ny)
+  if(missing(start_rec)){ message("Argument 'start_rec' missing. Default value used for each year")
+  start_rec <- rep((2*max(catch_no)),ny)
 }
   
   if(length(start_rec) == 1){
     start_rec <- rep(start_rec,ny)
-    message("arg: 'start_rec' has length 1 . Given value used for each year")
+    message("Argument 'start_rec' has length 1 . Given value used for each year")
   }else if(length(start_rec) == ny){
     start_rec <- start_rec
   }else stop("start_rec should be length of 1 or number of years")
 
   
-  if(missing(start_nmort)) {message("arg: 'start_nmort' missing. Default value used")
+  if(missing(start_nmort)) {message("Argument 'start_nmort' missing. Default value used")
     start_nmort<-start_nmort}
   
 

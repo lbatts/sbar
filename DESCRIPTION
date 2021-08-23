@@ -24,5 +24,6 @@ Imports:
 LinkingTo: TMB
 Suggests: 
     rmarkdown,
-    knitr
+    knitr,
+    TMBhelper
 VignetteBuilder: knitr

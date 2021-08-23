@@ -61,6 +61,7 @@ schnute_orig(
 }
 \value{
 list
+Details of the object returned can be found in the schnute vignette
 }
 \description{
 Create an object with TMB framework, including data, gradients and NLL function that can be optimised

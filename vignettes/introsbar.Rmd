@@ -31,6 +31,8 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 ### General details    
 * Models are fit by maximising the total log-likelihood of the objective function. 
 * In both approaches, surveys and catch (where relevant) are assumed to be log-normally distributed. 
+* Catch is assumed to be fully selected.
+* Surveys are also assumed to have no selectivity pattern, however this assumption can be relaxed for CSA (see CSA vignette).
 * Stages (recruits and post-recruits for CSA, recruits and previously exploited biomass for Schnute models) can be defined by the user by age, length or any other grouping that offers distinct stages that move from one to the other over a given time period. **NB** post-recruit stage of CSA and previously exploited stage for Schnute models are analogous. 
 * Assessments are limited to the time period covered by surveys and cannot estimate stock values outside of this.
 
@@ -124,12 +126,116 @@ all.equal(summary(fit$SD),obs.srep)
 ### Simple plot of assessment results
 ```{r sbarclass,warning=FALSE}
 survnames<- c("IBTS recruits (CPUE)","IBTS post-recruits (CPUE)")
-x<-makesbarclass(obs.srep,survnames,catch.no,obs,years)
+x <- makesbarclass(obs.srep,survnames,catch.no,obs,years)
 
 plot(x,out="fit")
 plot(x,out="stock")
 
 ```
 
+  
+### Schnute models
 
+@schnute1987 describes a size -based delay-difference model linking population size structure and mean weights. Growth is assumed to be deterministic and occurs at the end of the year. Mean weights are assumed to not vary throughout the year. 
+
+An interesting aspect of this approach is that it offers flexibility in the assumptions regarding the relative importance of recruitment and previously exploited biomass, which underlies the estimation of entire biomass (determined by function argument `version`). We look at this in more detail in the schnute vignette. 
+
+In `sbar` we implement two interpretations of the theoretical model proposed by @schnute1987. The first which we call the Schnute original process error model (run with `schnute_orig`), which has an autoregressive process error and takes catch biomass as known. The other model we call the Schnute adapted observation error model (run with `schnute_obserror`), which fits to survey and catch biomass. Details of the differences can be found in the schnute vignette.
+
+
+#### Quick start Schnute
+
+Schnute assumes weight does not change through the year so here we choose 'catch weight' within the FLStock to use for every calculation of biomass. This maybe a little confusing at first but makes sense under the model assumptions.
+
+For these 'quick start' we will use `version=2` (which is the default), which requires a matrix of sampled mean weights: recruit (first row), previously exploited biomass (second row) and entire assessed biomass mean weight (third row) for each year of the assessment. Ideally mean weights should from a sample that is not affected by selectivity (i.e. usually catch has lower selectivity in smaller fish), so in this example we use survey numbers to calculate mean weights as they're less likely to be (as) biased.
+
+For example: 
+```{r mean weights schn}
+rec_mw <- c(quantSums(catch.wt(ank78)["0",years]*index(ank78.indices$FR_IE_IBTS)["0",years])/quantSums(index(ank78.indices$FR_IE_IBTS)[1,years]))
+pe_mw <- c(quantSums(catch.wt(ank78)[IBTS_PR_ages,years]*index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[IBTS_PR_ages,years]))
+mw <- c(quantSums(catch.wt(ank78)[,years]*index(ank78.indices$FR_IE_IBTS)[,years])/quantSums(index(ank78.indices$FR_IE_IBTS)[,years]))
+
+mwts <- matrix(NA,ncol=no.years,nrow=3)
+mwts[1,] <- rec_mw
+mwts[2,] <- pe_mw
+mwts[3,] <- mw
+```
+```{r mwts plot1, echo = FALSE,fig.align='center',fig.cap="Mean weights of stages and entire assessed population of ank78 from the combined IBTS survey"}
+plot(y=rec_mw,x=years,type="b",ylim=c(0,1.5),ylab="mean wight (kg)")
+lines(y=pe_mw,x=years,col=2,type="b")
+lines(y=mw,x=years,col=3,type="b")
+legend("topright", legend = c("rec_mw (recruit mean wt)", "pe_mw (previously exploited biomass mean wt)", "mw (Total biomass mean wt)"), col = 1:3, lty = 1,cex=0.5)
+```
+
+There's an issue in 2017 as there's no survey data for this year, so we add means
+
+```{r 2017 mean}
+mwts[,15] <- rowSums(mwts,na.rm=T)/(no.years-1)
+```
+```{r mwts plot2, echo = FALSE,fig.align='center',fig.cap="Mean weights of stages and entire assessed population of ank78 from the combined IBTS survey"}
+plot(y = mwts[1,],x = years,type = "b",ylim = c(0,1.5), ylab = "mean wight (kg)")
+lines(y = mwts[2,],x = years,col = 2,type = "b")
+lines(y = mwts[3,],x = years,col = 3,type = "b")
+legend("topright", legend = c("rec_mw (recruit mean wt)", "pe_mw (previously exploited biomass mean wt)", "mw (Total biomass mean wt)"), col = 1:3, lty = 1,cex=0.5)
+```
+
+Next we need growth parameters. This aspect is discussed in more detail in the schnute vignette but for now just note that we fit a linear model to overall mean weights and previously exploited mean weights ($pe\_mw_{t+1}$ vs $mw_t$)
+
+```{r growth}
+mod <- stats::lm(mwts[2,2:no.years]~mwts[3,1:no.years-1])
+W1 <- coef(mod)[1]
+rho1 <- coef(mod)[2]
+```
+
+```{r catch survey}
+catch_kg <- c(colSums(catch.n(ank78)[,years]*catch.wt(ank78)[,years],na.rm=T))
+index1 <- colSums(index(ank78.indices$FR_IE_IBTS)*catch.wt(ank78)[,years],na.rm=T)
+
+obs <- matrix(NA,nrow=1,ncol=no.years)
+obs[1,]<-index1 # 
+obs[obs==0]<-NA
+obs[,15]<-rowSums(obs,na.rm=T)/(no.years-1)
+
+sigma_st <- exp(-nm)
+```
+
+sigma is survival (i.e. the proportion of the population that survives natural mortality), where sigma = $e^{-nm}$. 
+
+#### Schnute original process error - quick start
+
+Note above that we've added a mean value to the survey index, for demonstration purposes. 2017 is missing survey data and unfortunatley because of the nature of the process error within the model, the Schnute original process error model cannot run with missing survey data.
+
+We can run the assessment with some default arguments and then optimise in the same manner as CSA.
+
+```{r assessment sorig}
+obj<-schnute_orig(catch_b = catch_kg, indices_b = obs, ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma_st)
+fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
+obs.srep<-summary(fit$SD)
+```
+### Simple plot of assessment results
+```{r sbarclass schnute,warning=FALSE}
+survnames<- c("IBTS biomass (CPUE)")
+x <- makesbarclass(obs.srep,survnames,catch_kg,obs,years)
+
+plot(x,out="stock")
+```
+After the quick plot we can see the predicted biomass values from the assessment have a huge amount of error associated with them (the grey shading), so this probably isn't a very good assessment and requires further investigation!
+
+##### Schnute adapted observation error - quick start
+
+We can run the Schnute adapted observation error assessment with the same data. Again there is a number of defaults which we will leave for this example but will explore in the schnute vignette. An important point here is that the assessment can deal with missing survey data so firstly we change the 2017 value for the survey back to NA, as predicting without this data is preferable to adding a mean value.
+
+```{r assessment sobs}
+obj<-schnute_obserror(catch_b = catch_kg, indices_b = obs, ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma_st)
+fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
+obs.srep<-summary(fit$SD)
+```
+### Simple plot of assessment results
+```{r sbarclass schnute 2,warning=FALSE}
+survnames<- c("IBTS biomass (CPUE)")
+x <- makesbarclass(obs.srep,survnames,catch_kg,obs,years)
+
+plot(x,out="stock")
+plot(x,out="fit")
+```
 
