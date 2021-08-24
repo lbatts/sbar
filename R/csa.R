@@ -3,8 +3,9 @@
 #' Create list with TMB framework, including data, gradients and NLL function for a CSA assessment that can be optimised.
 #'
 #' @param catch_no numeric vector of catch numbers over time period of assessment
-#' @param indices_no matrix of survey indices of dimensions: no. of indices x no.years
+#' @param indices_no matrix of survey indices (numbers) of dimensions: no. of indices x no.years
 #' @param indices_att matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like: \tabular{cc}{
+#' survey \tab type\cr
 #' 1 \tab 1\cr
 #' 1 \tab 2}
 
@@ -27,7 +28,7 @@
 # #' 
 
 
-csa<-function(catch_no,indices_no,indices_att,ts, selrec=1, start_q = 1e-8, start_surveycv = 0.1 ,start_prec0, start_rec, start_nmort = 0.2 , start_f_calc = 0.3, start_catchcv = 0.1, fix_nmort = TRUE, fix_prec0 = FALSE, fix_surveycv = FALSE, fix_catchcv = TRUE){
+csa<-function(catch_no,indices_no,indices_att,ts, selrec = 1, start_q = 1e-8, start_surveycv = 0.1 ,start_prec0, start_rec, start_nmort = 0.2 , start_f_calc = 0.3, start_catchcv = 0.1, fix_nmort = TRUE, fix_prec0 = FALSE, fix_surveycv = FALSE, fix_catchcv = TRUE){
 
   
   

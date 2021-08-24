@@ -2,7 +2,7 @@
 % Please edit documentation in R/schnute_obserror.R
 \name{schnute_obserror}
 \alias{schnute_obserror}
-\title{Prepare list for SChnute assessment in an optimiser}
+\title{Prepare list for Schnute adapted observation error assessment for an optimiser}
 \usage{
 schnute_obserror(
   version = 2,
@@ -21,6 +21,7 @@ schnute_obserror(
   start_f_calc = 0.3,
   start_rec_a,
   start_rec_b,
+  spawn_prop = 1,
   start_catchsigma = 0.1,
   fix_sigma = TRUE,
   fix_B0 = FALSE,
@@ -29,39 +30,45 @@ schnute_obserror(
 )
 }
 \arguments{
-\item{version}{numeric}
+\item{version}{numeric, either 1, 2 or 3. This controls what deterministic equations in the model are used to derive population biomass. 1 and 2 use the fraction of of total biomass in a given year due to newly recruited fish. This fraction is derived from mean weights and detailed in the \strong{schnute} vignette. \code{version = 3} is the more classical population dynamics.
+\tabular{cc}{
+1 \tab whole biomass derived from recruit biomass \cr
+2 \tab whole biomass derived from previously exploited biomass \cr
+3 \tab whole biomass is a combination of recruit biomass and previously exploited biomass}}
 
-\item{catch_b}{numeric}
+\item{catch_b}{numeric vector of catch biomass over time period of assessment}
 
-\item{indices_b}{matrix}
+\item{indices_b}{matrix of biomass surveys (CPUE) of dimensions: no. of surveys x no.years}
 
-\item{ts}{numeric}
+\item{ts}{numeric. Survey timing parameters}
 
-\item{mwts}{matrix}
+\item{mwts}{matrix of mean weights from sampling with dimensions: 3 x no. years. recruit mean weights \eqn{\bar{Y}} (first row), previously exploited biomass mean weights \eqn{\bar{Z}} (second row) and entire assessed biomass mean weight \eqn{\bar{X}} (third row).}
 
-\item{tsp}{numeric}
+\item{tsp}{numeric. Timing of spawning. Default to 0 (start of year).}
 
-\item{rho}{numeric}
+\item{rho}{numeric. Growth parameter, slope of linear growth model.}
 
-\item{W}{numeric}
+\item{W}{numeric. Growth parameter, intercept of linear growth model.}
 
-\item{ind_l_wt}{numeric}
+\item{ind_l_wt}{numeric. Survey weighting in the likelihood. Defaults to 1 fro each survey, ie.e. equal weighting}
 
-\item{start_q}{numeric}
+\item{start_q}{Starting values for survey catchability parameters. Default is 1e-6}
 
-\item{start_indexsigma}{numeric}
+\item{start_indexsigma}{Starting values for survey sd parameters. Default is 0.1}
 
-\item{start_B0}{numeric}
+\item{start_B0}{Starting parameter value for biomass at first time step. Default is 5*max(catch_b)}
 
-\item{start_sigma}{numeric}
+\item{start_sigma}{Starting parameter value fraction of population that survives natural moratlity. Default is \eqn{e^{0.2}}}
 
-\item{start_f_calc}{numeric}
+\item{start_f_calc}{Starting parameter values for estimated fishing mortality. Default is 0.3.}
 
-\item{start_rec_a}{numeric}
+\item{start_rec_a}{Starting parameter value for the 'a' parameter of the Beverton-Holt stock-recruit function. The asymptotic biomass of recruits. Default is 1/5*max(catch_b).}
 
-\item{start_rec_b}{numeric}
+\item{start_rec_b}{Starting parameter value for the 'b' parameter of the Beverton-Holt stock-recruit function. The spawning stock biomass needed to produce a/2 on average. Default is 4*max(catch_b).}
 
-\item{start_catchsigma}{numeric}
+\item{spawn_prop}{proportion of biomass that is mature. Defaults to 1 for each year.}
+
+\item{start_catchsigma}{Starting parameter value for catch sd. Default is 0.1}
 
 \item{fix_sigma}{logical}
 
@@ -72,8 +79,8 @@ schnute_obserror(
 \item{fix_catchsigma}{logical}
 }
 \value{
-list
+List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
 }
 \description{
-Create an object with TMB framework, including data, gradients and NLL function that can be optimised
+Create list with TMB framework, including data, gradients and NLL function for a Schnute adapted observation error assessment that can be optimised.
 }

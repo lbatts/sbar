@@ -1,35 +1,40 @@
-#' Prepare list for SChnute assessment in an optimiser
+#' Prepare list for Schnute adapted observation error assessment for an optimiser
 #'
-#' Create an object with TMB framework, including data, gradients and NLL function that can be optimised
+#' Create list with TMB framework, including data, gradients and NLL function for a Schnute adapted observation error assessment that can be optimised.
 #'
-#' @param version numeric
-#' @param catch_b numeric
-#' @param indices_b matrix
-#' @param ts numeric
-#' @param mwts matrix
-#' @param tsp numeric
-#' @param rho numeric
-#' @param W numeric
-#' @param ind_l_wt numeric
-#' @param start_q numeric
-#' @param start_indexsigma numeric
-#' @param start_B0 numeric
-#' @param start_sigma numeric
-#' @param start_f_calc numeric
-#' @param start_rec_a numeric
-#' @param start_rec_b numeric
-#' @param start_catchsigma numeric
+#' @param version numeric, either 1, 2 or 3. This controls what deterministic equations in the model are used to derive population biomass. 1 and 2 use the fraction of of total biomass in a given year due to newly recruited fish. This fraction is derived from mean weights and detailed in the **schnute** vignette. `version = 3` is the more classical population dynamics.
+#' \tabular{cc}{
+#' 1 \tab whole biomass derived from recruit biomass \cr
+#' 2 \tab whole biomass derived from previously exploited biomass \cr
+#' 3 \tab whole biomass is a combination of recruit biomass and previously exploited biomass}
+#' @param catch_b numeric vector of catch biomass over time period of assessment
+#' @param indices_b matrix of biomass surveys (CPUE) of dimensions: no. of surveys x no.years
+#' @param ts numeric. Survey timing parameters
+#' @param mwts matrix of mean weights from sampling with dimensions: 3 x no. years. recruit mean weights \eqn{\bar{Y}} (first row), previously exploited biomass mean weights \eqn{\bar{Z}} (second row) and entire assessed biomass mean weight \eqn{\bar{X}} (third row).
+#' @param tsp numeric. Timing of spawning. Default to 0 (start of year).
+#' @param rho numeric. Growth parameter, slope of linear growth model.
+#' @param W numeric. Growth parameter, intercept of linear growth model.
+#' @param ind_l_wt numeric. Survey weighting in the likelihood. Defaults to 1 fro each survey, ie.e. equal weighting
+#' @param start_q Starting values for survey catchability parameters. Default is 1e-6
+#' @param start_indexsigma Starting values for survey sd parameters. Default is 0.1
+#' @param start_B0 Starting parameter value for biomass at first time step. Default is 5*max(catch_b)
+#' @param start_sigma Starting parameter value fraction of population that survives natural moratlity. Default is \eqn{e^{0.2}}
+#' @param start_f_calc Starting parameter values for estimated fishing mortality. Default is 0.3.
+#' @param start_rec_a Starting parameter value for the 'a' parameter of the Beverton-Holt stock-recruit function. The asymptotic biomass of recruits. Default is 1/5*max(catch_b).
+#' @param start_rec_b Starting parameter value for the 'b' parameter of the Beverton-Holt stock-recruit function. The spawning stock biomass needed to produce a/2 on average. Default is 4*max(catch_b).
+#' @param spawn_prop proportion of biomass that is mature. Defaults to 1 for each year. 
+#' @param start_catchsigma Starting parameter value for catch sd. Default is 0.1
 #' @param fix_sigma logical
 #' @param fix_B0 logical
 #' @param fix_indexsigma logical
 #' @param fix_catchsigma logical
-#' @return list
+#' @return List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
 #' @export
 #' @examples
-# #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
+# #' 
 
 
-schnute_obserror<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 ,start_B0, start_sigma = exp(-0.2) , start_f_calc = 0.3,  start_rec_a, start_rec_b, start_catchsigma = 0.1, fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE, fix_catchsigma = TRUE){
+schnute_obserror<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 ,start_B0, start_sigma = exp(-0.2) , start_f_calc = 0.3,  start_rec_a, start_rec_b, spawn_prop = 1, start_catchsigma = 0.1, fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE, fix_catchsigma = TRUE){
 
  
   ny <- length(catch_b)
@@ -65,6 +70,14 @@ schnute_obserror<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, rho, 
   
   
   
+  if(length(spawn_prop) == 1){
+    spawn_prop <- rep(spawn_prop,times =ny)
+    message("Argument 'spawn_prop' has length 1 . Given value used for each year")
+  }else if(length(spawn_prop) == ny ){
+    spawn_prop <- spawn_prop
+  }else stop("spawn_prop should be length of 1 or length of number of years")
+  
+  
 
   rec_miss<-c(missing(start_rec_a),missing(start_rec_b))
 
@@ -90,7 +103,7 @@ schnute_obserror<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, rho, 
 
 
 
-  dat_tmb<-schnute_datprep(catch_b,indices_b,ts,mwts,tsp,version,ind_l_wt)
+  dat_tmb<-schnute_datprep(catch_b,indices_b,ts,mwts,tsp,version,ind_l_wt, spawn_prop)
   
   if(missing(start_q)){
     start_q <- rep(start_q,no.survey)

@@ -20,6 +20,7 @@ schnute_orig(
   start_sigma = exp(-0.2),
   start_rec_a,
   start_rec_b,
+  spawn_prop = 1,
   fix_sigma = TRUE,
   fix_indexsigma = FALSE
 )
@@ -54,6 +55,8 @@ schnute_orig(
 \item{start_rec_a}{numeric}
 
 \item{start_rec_b}{numeric}
+
+\item{spawn_prop}{numeric}
 
 \item{fix_sigma}{logical}
 

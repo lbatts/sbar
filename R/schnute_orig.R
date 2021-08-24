@@ -17,6 +17,7 @@
 #' @param start_sigma numeric
 #' @param start_rec_a numeric
 #' @param start_rec_b numeric
+#' @param spawn_prop numeric
 #' @param fix_sigma logical
 #' @param fix_indexsigma logical
 #' @return list
@@ -26,7 +27,7 @@
 # #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
 
 
-schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 , start_sigma = exp(-0.2), start_rec_a, start_rec_b, fix_sigma = TRUE,fix_indexsigma = FALSE){
+schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 , start_sigma = exp(-0.2), start_rec_a, start_rec_b, spawn_prop = 1, fix_sigma = TRUE,fix_indexsigma = FALSE){
 
    ny <- length(catch_b)
   no.survey <- dim(indices_b)[1]
@@ -56,6 +57,15 @@ schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5,
   if(missing(start_sigma)) {message("Argument 'start_sigma' missing. Default value used")
     start_sigma<-start_sigma}
   
+  
+  if(length(spawn_prop) == 1){
+    spawn_prop <- rep(spawn_prop,times =ny)
+    message("Argument 'spawn_prop' has length 1 . Given value used for each year")
+  }else if(length(spawn_prop) == ny ){
+    spawn_prop <- spawn_prop
+  }else stop("spawn_prop should be length of 1 or length of number of years")
+  
+  
   rec_miss<-c(missing(start_rec_a),missing(start_rec_b))
   
   if(rec_miss[1]==TRUE) {rec_a <- (1/5)*max(catch_b)
@@ -76,7 +86,7 @@ schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5,
 
 
 
-  dat_tmb<-schnute_datprep(catch_b,indices_b,ts,mwts,tsp,version,ind_l_wt)
+  dat_tmb<-schnute_datprep(catch_b,indices_b,ts,mwts,tsp,version,ind_l_wt, spawn_prop)
 
   if(missing(start_q)){
     start_q <- rep(start_q,no.survey)

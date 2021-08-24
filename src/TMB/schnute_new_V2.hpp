@@ -141,15 +141,14 @@ Type schnute_new_V2(objective_function<Type>* obj) {
       rec_bio[i+1] = (rec_param[i+1]);
     }else{
       if(SRcode==1){//ricker SR model
-        Type rec_a = rec_param[0];
-        Type rec_b = rec_param[1];
-        rec_no[i+1] = ((rec_a*ssb[i])*exp(-rec_b*ssb[i]));
-        rec_bio[i+1] = rec_no[i+1]*mean_wts(0,i+1);
+        
+        rec_bio[i+1] = ((rec_a*ssb[i])*exp(-rec_b*ssb[i]));
+        rec_no[i+1] = rec_bio[i+1]/mean_wts(0,i+1);
       }else{
         if(SRcode==2){//bevholt SR model
 
-          rec_no[i+1] = (rec_a*ssb[i]/(rec_b +ssb[i]));
-          rec_bio[i+1] = rec_no[i+1]*mean_wts(0,i+1);
+          rec_bio[i+1] = (rec_a*ssb[i]/(rec_b +ssb[i]));
+          rec_no[i+1] = rec_bio[i+1]/mean_wts(0,i+1);
         }else{
           error("SRcode not recognised");
         }

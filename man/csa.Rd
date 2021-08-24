@@ -26,9 +26,10 @@ csa(
 \arguments{
 \item{catch_no}{numeric vector of catch numbers over time period of assessment}
 
-\item{indices_no}{matrix of survey indices of dimensions: no. of indices x no.years}
+\item{indices_no}{matrix of survey indices (numbers) of dimensions: no. of indices x no.years}
 
 \item{indices_att}{matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like: \tabular{cc}{
+survey \tab type\cr
 1 \tab 1\cr
 1 \tab 2}}
 
