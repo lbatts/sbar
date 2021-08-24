@@ -188,7 +188,7 @@ rho1 <- coef(mod)[2]
 ```
 
 ```{r catch survey}
-catch_kg <- c(colSums(catch.n(ank78)[,years]*catch.wt(ank78)[,years],na.rm=T))
+catch_biomass <- c(colSums(catch.n(ank78)[,years]*catch.wt(ank78)[,years],na.rm=T))
 index1 <- colSums(index(ank78.indices$FR_IE_IBTS)*catch.wt(ank78)[,years],na.rm=T)
 
 obs <- matrix(NA,nrow=1,ncol=no.years)
@@ -208,7 +208,7 @@ Note above that we've added a mean value to the survey index, for demonstration 
 We can run the assessment with some default arguments and then optimise in the same manner as CSA.
 
 ```{r assessment sorig}
-obj<-schnute_orig(catch_b = catch_kg, indices_b = obs, ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma_st)
+obj<-schnute_orig(catch_b = catch_biomass, indices_b = obs, ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma_st)
 fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
 obs.srep<-summary(fit$SD)
 ```
@@ -227,7 +227,7 @@ After the quick plot we can see the predicted biomass values from the assessment
 We can run the Schnute adapted observation error assessment with the same data. Again there is a number of defaults which we will leave for this example but will explore in the schnute vignette. An important point here is that the assessment can deal with missing survey data so firstly we change the 2017 value for the survey back to NA, as predicting without this data is preferable to adding a mean value.
 
 ```{r assessment sobs}
-obj<-schnute_obserror(catch_b = catch_kg, indices_b = obs, ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma_st)
+obj<-schnute_obserror(catch_b = catch_biomass, indices_b = obs, ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma_st)
 fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
 obs.srep<-summary(fit$SD)
 ```

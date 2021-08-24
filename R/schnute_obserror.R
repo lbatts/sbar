@@ -28,13 +28,14 @@
 #' @param fix_B0 logical
 #' @param fix_indexsigma logical
 #' @param fix_catchsigma logical
+#' @param adrep logical. Whether the user would like the ADreport variables (and their derivatives) reported for starting parameters.
 #' @return List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
 #' @export
 #' @examples
 # #' 
 
 
-schnute_obserror<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 ,start_B0, start_sigma = exp(-0.2) , start_f_calc = 0.3,  start_rec_a, start_rec_b, spawn_prop = 1, start_catchsigma = 0.1, fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE, fix_catchsigma = TRUE){
+schnute_obserror<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 ,start_B0, start_sigma = exp(-0.2) , start_f_calc = 0.3,  start_rec_a, start_rec_b, spawn_prop = 1, start_catchsigma = 0.1, fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE, fix_catchsigma = TRUE,adrep = FALSE){
 
  
   ny <- length(catch_b)
@@ -174,6 +175,7 @@ schnute_obserror<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, rho, 
       ),
       hessian = TRUE,
       silent = TRUE,
+      ADreport = adrep,
       DLL = "sbar_TMBExports")
 
 

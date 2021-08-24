@@ -80,7 +80,7 @@ mod <- stats::lm(mwts[2,2:no.years]~mwts[3,1:no.years-1])
 W1 <- coef(mod)[1]
 rho1 <- coef(mod)[2]
 ```
-visaully this looks like,
+visually this looks like:
 
 ```{r mwts plot2, echo = FALSE,fig.align='center'}
 plot(X[-18], Z[-1],ylim=c(0,1.5),ylab="Z_t+1",xlab="X_t")#,xlim==c(0,3))
@@ -88,9 +88,11 @@ abline(c(W1, rho1))
 legend("topright", legend = c("linear model"), col = 1, lty = 1,cex=0.5)
 ```
 
+Next up we calculate total catch biomass from the FLStock and the biomass CPUE for the two surveys. It is unlikely these surveys do not have any selectivity differences over sizes or ages but these Schnute models assume the same catchability over the entire assessed population and offer no flexibility in the input.
+
 
 ```{r catch survey}
-catch_kg <- c(colSums(catch.n(ank78)[,years]*catch.wt(ank78)[,years],na.rm=T))
+catch_biomass <- c(colSums(catch.n(ank78)[,years]*catch.wt(ank78)[,years],na.rm=T))
 index1 <- colSums(index(ank78.indices$FR_IE_IBTS)*catch.wt(ank78)[,years],na.rm=T)
 index2 <- colSums(index(ank78.indices$IE_MONKSURVEY)*catch.wt(ank78)[IEmon_full_ages,IEmon_yearrange],na.rm=T)
 
@@ -101,7 +103,83 @@ obs[obs==0]<-NA
 sigma_st <- exp(-0.25) # the accepted  stationary natural mortality of the stock is 0.25
 ```
 
-Lets load all the data and defined arguments for the assessment into a list
+At this point in the quick start Schnute in **introsbar** we just ran the function with this minimum amount of data with the default arguments. Here, we'll set up a list with data and arguments we want to set.
+
+```{r list dat}
+dat <- list( version = 2,
+             catch_b = catch_biomass, 
+             indices_b = obs, 
+             ts = c(0.875,0.125), 
+             mwts = mwts, 
+             rho = rho1, 
+             W = W1 , 
+             start_q = c(1e-8, 2e-5),
+             start_indexsigma = c(0.1, 0.2), 
+             start_sigma = sigma_st, 
+             start_f_calc = 0.5,
+             fix_sigma = TRUE, 
+             fix_indexsigma = FALSE)
+
+```
+Details of arguments can be found in the function documentation but things to note here:
+
+* two survey timings (`ts`)
+* two starting survey catchabilities (`start_q`)
+* two starting survey SDs (`start_q`)
+* starting value for fishing mortality estimates is 0.5 (`start_f_calc`)
+
+and...`version` is set at 2. 
+
+## version
+
+An intriguing aspect of the model proposed in @schnute1987 is that there is three model versions, where a predicted total biomass index can be calculated a number of ways. Two of these model versions utilise all three time series of mean weights ($\bar{X}$, $\bar{Z}$ and $\bar{Y}$) to calculate $\omega_t$. $\omega_t$ is defined as the fraction of total biomass in year _t_ due to newly recruited fish,
+
+$$
+\begin{aligned}
+\omega_t = \frac{R^*_t}{N^*_t}
+\end{aligned}
+$$
+where $R^*_t$ is recruitment biomass at time _t_ and $N^*_t$ is population biomass at time _t_. @schnute1987 demonstrates that $\omega_t$ can be derived from mean weights alone:
+
+$$
+\begin{aligned}
+\omega_t = \bigg(\frac{Y_t}{X_t}\bigg)\bigg(\frac{Z_t - X_t}{Z_t - Y_t}\bigg)
+\end{aligned}
+$$
+$\omega_t$ values can then used to compute estimates of $N^*_t$ using only either the recruit stage $R^*_t$ (`version = 1`) or the previously exploited population stage $P^*_t$ (`version = 2`).
+
+| version | $N^*_t$ calculation |
+|:---:|:---------------:|
+| 1 | $\frac{R^*_t}{\omega_t}$ | 
+| 2 | $\frac{P^*_t}{1 - \omega_t}$ |
+| 3 | $R^*_t + P^*_t$ |
+
+`version = 3` is the more classical model form where estimated biomass in a given year is a combination of recruit biomass and previously exploited biomass.
+
+These versions offer flexibility with the type of model you would like to fit. For example `version = 1` where the realtive importance is shifted to recruit biomass might be useful for a small pelagic stock where recruitment is a big driver of biomass changes. In terms of simplicity `version = 2` would be the preferred model as no recruitment parameters need to be estimated internally. Versions 1 and 3 fit a Beverton-Holt stock recruitment function internally in the model and these parameters can be difficult to estimate (as we'll see in the next section).
+
+
+## version comparison
+
+Lets load the data, with the thre versions. We'll use the default recruitment parameters and not mess around with proportion of biomass mature (`spawn_prop`).
+
+```{r ver2 3 1,message=FALSE, warning=FALSE}
+ver2<-do.call(schnute_obserror,dat)
+dat$version = 1
+ver1<-do.call(schnute_obserror,dat)
+dat$version = 3
+ver3<-do.call(schnute_obserror,dat)
+```
+Check model evaluate to a finite number with starting parameters
+
+```{r evaluate}
+ver1$fn(ver1$par)
+ver2$fn(ver2$par)
+ver3$fn(ver3$par)
+```
+
+All three do which is a good start. If they didn't then we would have to play around with starting parameters.
+
 
 
 

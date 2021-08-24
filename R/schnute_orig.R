@@ -20,6 +20,8 @@
 #' @param spawn_prop numeric
 #' @param fix_sigma logical
 #' @param fix_indexsigma logical
+#' @param adrep logical. Whether the user would like the ADreport variables (and their derivatives) reported for starting parameters.
+
 #' @return list
 #' Details of the object returned can be found in the schnute vignette
 #' @export
@@ -27,7 +29,7 @@
 # #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
 
 
-schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 , start_sigma = exp(-0.2), start_rec_a, start_rec_b, spawn_prop = 1, fix_sigma = TRUE,fix_indexsigma = FALSE){
+schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 , start_sigma = exp(-0.2), start_rec_a, start_rec_b, spawn_prop = 1, fix_sigma = TRUE,fix_indexsigma = FALSE, adrep = FALSE){
 
    ny <- length(catch_b)
   no.survey <- dim(indices_b)[1]
@@ -132,6 +134,7 @@ schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5,
       ),
       hessian = TRUE,
       silent = TRUE,
+      ADreport = adrep,
       DLL = "sbar_TMBExports")
 
 
