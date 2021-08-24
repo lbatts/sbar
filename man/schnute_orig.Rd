@@ -22,7 +22,8 @@ schnute_orig(
   start_rec_b,
   spawn_prop = 1,
   fix_sigma = TRUE,
-  fix_indexsigma = FALSE
+  fix_indexsigma = FALSE,
+  adrep = FALSE
 )
 }
 \arguments{
@@ -61,6 +62,8 @@ schnute_orig(
 \item{fix_sigma}{logical}
 
 \item{fix_indexsigma}{logical}
+
+\item{adrep}{logical. Whether the user would like the ADreport variables (and their derivatives) reported for starting parameters.}
 }
 \value{
 list

@@ -215,7 +215,7 @@ obs.srep<-summary(fit$SD)
 
 ```{r sbarclass schnute,warning=FALSE}
 survnames<- c("IBTS biomass (CPUE)")
-x <- makesbarclass(obs.srep,survnames,catch_kg,obs,years)
+x <- makesbarclass(obs.srep,survnames,catch_biomass,obs,years)
 
 plot(x,out="stock")
 ```
@@ -236,7 +236,7 @@ Check out the fits and stock predictions
 
 ```{r sbarclass schnute 2,warning=FALSE}
 survnames<- c("IBTS biomass (CPUE)")
-x <- makesbarclass(obs.srep,survnames,catch_kg,obs,years)
+x <- makesbarclass(obs.srep,survnames,catch_biomass,obs,years)
 
 plot(x,out="stock")
 plot(x,out="fit")

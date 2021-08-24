@@ -26,7 +26,8 @@ schnute_obserror(
   fix_sigma = TRUE,
   fix_B0 = FALSE,
   fix_indexsigma = FALSE,
-  fix_catchsigma = TRUE
+  fix_catchsigma = TRUE,
+  adrep = FALSE
 )
 }
 \arguments{
@@ -77,6 +78,8 @@ schnute_obserror(
 \item{fix_indexsigma}{logical}
 
 \item{fix_catchsigma}{logical}
+
+\item{adrep}{logical. Whether the user would like the ADreport variables (and their derivatives) reported for starting parameters.}
 }
 \value{
 List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
