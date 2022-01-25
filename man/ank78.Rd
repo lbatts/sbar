@@ -5,13 +5,13 @@
 \alias{ank78}
 \title{ank78}
 \format{
-an \code{FLStock} object
+a list of vectors and dataframes
 }
 \usage{
 ank78
 }
 \description{
-Catch numbers, catch weights, etc. for black-bellied anglerfish stock in the Celtic Sea and oorthern Bay of Biscay
+Catch and survey data for black-bellied anglerfish stock in the Celtic Sea and oorthern Bay of Biscay
 }
 \examples{
 

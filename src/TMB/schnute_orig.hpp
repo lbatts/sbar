@@ -109,7 +109,7 @@ Type schnute_orig(objective_function<Type>* obj) {
   //Type B0;
 
 
-  //biomass_alt[0] = (obs_ind(0,0) + q*((theta*(1 - mu[0]*(1-sigma)))*catch_pred[0]))/q*(1-theta*(1-sigma));
+  //biomass_alt[0] = (obs_ind(0,0) + q*((theta*(1 - mu[0]*(1-sigma)))*catch_pred[0]))/(q*(1-theta*(1-sigma)));
   Type rec_a = rec_param[0];
   Type rec_b = rec_param[1];
   tp  = indices_class;
@@ -126,7 +126,8 @@ Type schnute_orig(objective_function<Type>* obj) {
       logB0(j,i) = 0;
       B0_ctrl(j,i) = 0;
       if(obs_ind(j,i)>0){
-        logB0(j,i) = log((obs_ind(j,i) + q*((theta*(1 - mu*(1-sigma)))*obs_catch[i]))/q*(1-theta*(1-sigma)));
+        logB0(j,i) = log((obs_ind(j,i) + q*((theta*(1 - mu*(1-sigma)))*obs_catch[i]))/(q*(1-theta*(1-sigma))));
+        //logB0(j,i) = log((obs_ind(j,i) + q*((theta*(1 - mu*(1-sigma)))*obs_catch[i]))/q*(1-theta*(1-sigma)));
         B0_ctrl(j,i)= 1;
         logB0_y = logB0.col(i);
       }
@@ -208,7 +209,7 @@ Type schnute_orig(objective_function<Type>* obj) {
     logB0(j,(no_years-1)) = 0;
     B0_ctrl(j,(no_years-1)) = 0;
     if(obs_ind(j,(no_years-1))>0){
-      logB0(j,(no_years-1)) = log((obs_ind(j,(no_years-1)) + q*((theta*(1 - mu*(1-sigma)))*obs_catch[(no_years-1)]))/q*(1-theta*(1-sigma)));
+      logB0(j,(no_years-1)) = log((obs_ind(j,(no_years-1)) + q*((theta*(1 - mu*(1-sigma)))*obs_catch[(no_years-1)]))/(q*(1-theta*(1-sigma))));
       B0_ctrl(j,(no_years-1))= 1;
       logB0_y = logB0.col((no_years-1));
     }

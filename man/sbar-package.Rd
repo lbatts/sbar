@@ -4,9 +4,9 @@
 \name{sbar-package}
 \alias{sbar}
 \alias{sbar-package}
-\title{sbar: Stage-based assessments in R}
+\title{sbar: Stage-based Assessments in R}
 \description{
-Implementations of the stage-based fisheries assessment models CSA and Schnute (1987). Models are those detailed and implemented in a manuscript currently under review.
+c(Implementations of the stage-based fisheries assessment models CSA and Schnute (1987). Models are those detailed and implemented in a manuscript currently under review.)
 }
 \seealso{
 Useful links:

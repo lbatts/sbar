@@ -2,7 +2,7 @@
 % Please edit documentation in R/csa.R
 \name{csa}
 \alias{csa}
-\title{Prepare list for CSA assessment to be used in optimiser}
+\title{Prepare an object for a CSA assessment to be used in optimiser}
 \usage{
 csa(
   catch_no,
@@ -28,20 +28,31 @@ csa(
 
 \item{indices_no}{matrix of survey indices (numbers) of dimensions: no. of indices x no.years}
 
-\item{indices_att}{matrix of survey indices attributes of dimensions: no. of indices x 2. First column defines survey and second column defines survey type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population index). For example the minimum needed to run CSA is one survey split into a recruit index and a post-recruit index, the attribute matrix should look like: \tabular{cc}{
+\item{indices_att}{matrix of survey indices attributes of dimensions: no. of
+indices x 2. First column defines survey and second column defines survey
+type (1 = recruit index, 2 post-recruit index, 3 = whole asessed population
+index). For example the minimum needed to run CSA is one survey split into
+a recruit index and a post-recruit index, the attribute matrix should look
+like: \tabular{cc}{
 survey \tab type\cr
 1 \tab 1\cr
 1 \tab 2}}
 
 \item{ts}{numeric. Survey timing parameters}
 
-\item{selrec}{matrix of selection proportions of the recruit indices (in comparison to the post-recruit index) if known. Dimensions: no. of recruit indices x no. years. Defaults to 1 for all years (i.e. no difference between recruit and post-recruit indices of a survey)}
+\item{selrec}{matrix of selection proportions of the recruit indices (in
+comparison to the post-recruit index) if known. Dimensions: no. of recruit
+indices x no. years. Defaults to 1 for all years (i.e. no difference
+between recruit and post-recruit indices of a survey)}
 
-\item{start_q}{Starting values for survey catchability parameters. Default is 1e-6}
+\item{start_q}{Starting values for survey catchability parameters. Default is
+1e-6}
 
-\item{start_surveycv}{Starting values for survey cv parameters. Default is 0.1}
+\item{start_surveycv}{Starting values for survey cv parameters. Default is
+0.1}
 
-\item{start_prec0}{Starting parameter value for post-recruit numbers at first time step. Default is 4*max(catch.no).}
+\item{start_prec0}{Starting parameter value for post-recruit numbers at first
+time step. Default is 4*max(catch.no).}
 
 \item{start_rec}{Starting parameter values for estimated recruit numbers. Default is 2*max(catch.no).}
 
@@ -51,17 +62,65 @@ survey \tab type\cr
 
 \item{start_catchcv}{Starting parameter value for catch cv. Default is 0.1}
 
-\item{fix_nmort}{logical}
+\item{fix_nmort}{logical. Should natural mortality be fixed in the model}
 
-\item{fix_prec0}{logical}
+\item{fix_prec0}{logical. Should post-recruit numbers in the first time step  be fixed in the model.}
 
-\item{fix_surveycv}{logical}
+\item{fix_surveycv}{logical. Should survey CV  be fixed in the model.}
 
-\item{fix_catchcv}{logical}
+\item{fix_catchcv}{logical. Should catch CV be fixed in the model.}
 }
 \value{
-List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
+List with components for optimiser in R. This output is that of the
+function \link[TMB]{MakeADFun} from TMB
+
+Access (transformed) starting values of parameters to be estimated with
+\code{x$par} (where x is the csa object) to see what parameters are to be estimated.
 }
 \description{
-Create list with TMB framework, including data, gradients and NLL function for a CSA assessment that can be optimised.
+Create list with a TMB framework, including data, gradients and NLL function
+for a CSA assessment that can be optimised.
+}
+\details{
+\code{csa} is simply a wrapper function that gives the output from
+\code{\link[TMB]{MakeADFun}} from TMB, i.e. an objective function with
+derivatives, hessian etc. Otimisation and extraction of values from the
+assessment models has been kept separate to allow flexibility with
+optimisation methods as well as easy access to \code{\link[TMB]{MakeADFun}}
+outputs such as the hessian, gradients etc. See
+\url{http://kaskr.github.io/adcomp/_book/Introduction.html} and TMB
+documentation for details. Users should refer to the \code{sbar} vignette by
+running \code{vignette("intro_to_sbar", "sbar")} for for details on the
+\code{csa} function.
+
+The table below gives the outputs and description of the values that can be
+extracted from this assessment model after optimisation and
+\code{summary(TMB::sdreport(x))} of the \code{csa} object.
+
+\tabular{ll}{
+Output         \tab Description             \cr
+logitqhat      \tab logit transformed survey catchability              \cr
+logphat1       \tab log transformed post-rec numbers at first time step\cr
+logrhat        \tab log transformed recruitment numbers                \cr
+logf_calc      \tab log transformed fishing mortality                  \cr
+log_surveycv   \tab log transformed survey CV                          \cr
+log_catchcv    \tab log transformed catch CV                           \cr
+lognmort       \tab log transformed natural mortality                  \cr
+phat           \tab post-recruit numbers                               \cr
+rhat           \tab recruit numbers                                    \cr
+bhat           \tab total numbers                                      \cr
+lnphat         \tab log transformed post-rec numbers                   \cr
+lnbhat         \tab log transformed total numbers                      \cr
+lnc            \tab log transformed catch numbers                      \cr
+c_calc         \tab catch numbers                                      \cr
+logpred_survey \tab log transformed predicted survey indices           \cr
+sdsurv         \tab Survey index standard deviation                    \cr
+f_calc         \tab fishing mortality                                  \cr
+phat1          \tab post-rec numbers at first time step                \cr
+nmort          \tab natural mortality                                  \cr
+qhat           \tab survey catchability                                }
+}
+\examples{
+\dontrun{ obj <- csa(catch_n = catch.no, indices_no = obs,
+indices_att = indices_att, ts = #'timing, #'start_nmort = nm)}
 }

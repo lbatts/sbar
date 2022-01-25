@@ -2,28 +2,34 @@
 % Please edit documentation in R/sbarclass.R
 \name{makesbarclass}
 \alias{makesbarclass}
-\title{Convert sdreport summary into an object of for plotting with class: sbarclass
-#'
-Create an object with class:'sbarclass', which can then be used to quickly plot fit and stock predictions from an sbar assessment}
+\title{Convert sdreport summary into an object of for plotting with class: sbarclass}
 \usage{
 makesbarclass(x = matrix(), survey_names, cat, ind, years)
 }
 \arguments{
-\item{x}{matrix}
+\item{x}{the matrix output from \code{summary(sdreport(x))} , where \code{x} is an optimised sbar stock assessment model.}
 
-\item{survey_names}{character}
+\item{survey_names}{character vector of survey names}
 
-\item{cat}{numeric}
+\item{cat}{numeric vector of catch that was used in the sbar assessment. Used to plot the fit of the assessment}
 
-\item{ind}{matrix}
+\item{ind}{matrix of survey indices that were used in the sbar assessment. Used to plot the fit of the assessment}
 
-\item{years}{numeric}
+\item{years}{numeric vector of years}
 }
 \value{
-list
+An object of class:sbarclass
 }
 \description{
-Convert sdreport summary into an object of for plotting with class: sbarclass
-#'
 Create an object with class:'sbarclass', which can then be used to quickly plot fit and stock predictions from an sbar assessment
+}
+\details{
+See vignette for a detailed example of this function in use.
+}
+\examples{
+\dontrun{ survnames<- c("IBTS recruits (CPUE)","IBTS post-recruits (CPUE)")
+x <- makesbarclass(obs.srep,survnames,catch.no,obs,years)}
+}
+\seealso{
+\code{\link{plot.sbarclass}} to plot a sbar assessment after using this function.
 }

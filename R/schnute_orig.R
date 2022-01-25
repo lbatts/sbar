@@ -1,33 +1,82 @@
-#' Prepare list for SChnute assessment in an optimiser
+#' Prepare list for Schnute Original Process Error Model assessment in an optimiser
 #'
-#' Create an object with TMB framework, including data, gradients and NLL function that can be optimised
+#' Create an object with TMB framework, including data, gradients and NLL function for a Schnute Original Process Error Model assessment that can be optimised.
+#' 
+#' \code{schnute_orig} is simply a wrapper function that gives the output from
+#' \code{\link[TMB]{MakeADFun}} from TMB, i.e. an objective function with
+#' derivatives, hessian etc. Otimisation and extraction of values from the
+#' assessment models has been kept separate to allow flexibility with
+#' optimisation methods as well as easy access to \code{\link[TMB]{MakeADFun}}
+#' outputs such as the hessian, gradients etc. See
+#' \url{http://kaskr.github.io/adcomp/_book/Introduction.html} and TMB
+#' documentation for details. Users should refer to the \code{sbar} vignette by
+#' running \code{vignette("intro_to_sbar", "sbar")} for for details on the
+#' \code{schnute_orig} function.
+#' 
+#' The table below gives the outputs and description of the values that can be
+#' extracted from this assessment model after optimisation and
+#' \code{summary(TMB::sdreport(x))} of the \code{schnute_orig} object.
 #'
-#' @param version numeric
-#' @param catch_b numeric
-#' @param indices_b matrix
-#' @param ts numeric
-#' @param mwts matrix
-#' @param tsp numeric
-#' @param mu numeric
-#' @param rho numeric
-#' @param W numeric
-#' @param ind_l_wt numeric
-#' @param start_q numeric
-#' @param start_indexsigma numeric
-#' @param start_sigma numeric
-#' @param start_rec_a numeric
-#' @param start_rec_b numeric
-#' @param spawn_prop numeric
-#' @param fix_sigma logical
-#' @param fix_indexsigma logical
+#'#' \tabular{ll}{
+#' Output         \tab Description             \cr
+#' logitq     \tab logit transformed survey catchability              \cr
+#' logitsigma       \tab logit transformed survival of natural mortality  \cr
+#' logindex_sigma \tab log transformed survey standard deviation         \cr
+#' lnb           \tab log transformed total biomass                        \cr
+#' lnpr           \tab log transformed previously-exploited biomass               \cr
+#' lnr           \tab log transformed recruit biomass                        \cr
+#' lnN           \tab log transformed total numbers                        \cr
+#' lnPR           \tab log transformed previously-exploited or post-recruit  numbers               \cr
+#' lnR           \tab log transformed recruit numbers                        \cr
+#' lnC           \tab log transformed observed catch numbers                        \cr
+#' biomass       \tab total biomass                        \cr
+#' N       \tab total numbers                        \cr
+#' ssb       \tab spawning biomass                        \cr
+#' post_rec       \tab previously-exploited or post-recruit biomass                        \cr
+#' PR       \tab previously-exploited or post-recruit numbers                        \cr
+#' rec_bio       \tab recruit biomass                        \cr
+#' rec_no       \tab recruit numbers                        \cr
+#' C       \tab observed catch numbers                        \cr
+#' logpred_survey \tab log transformed predicted survey indices           \cr
+#' omega       \tab fraction of total biomass in a given year due to newly recruited fish \cr
+#' index_sigma         \tab Survey indices standard deviation\cr
+#' sigma          \tab survival of natural mortality\cr
+#' logrec_param          \tab log transformed recruit parameters from a Beverton-Holt SR function if estimated in versions 1 or 3 \cr
+#' rec_param          \tab the two recruit parameters fro a Beverton-Holt SR functionif estimated in versions 1 or 3\cr
+#' qhat           \tab survey catchability                                }
+#' 
+#'
+#' @param version numeric, either 1, 2 or 3. This controls what deterministic equations in the model are used to derive population biomass. 1 and 2 use the fraction of of total biomass in a given year due to newly recruited fish. This fraction is derived from mean weights and detailed in the **schnute** vignette. `version = 3` is the more classical population dynamics.
+#' \tabular{cc}{
+#' 1 \tab whole biomass derived from recruit biomass \cr
+#' 2 \tab whole biomass derived from previously exploited biomass \cr
+#' 3 \tab whole biomass is a combination of recruit biomass and previously exploited biomass}
+#' @param catch_b numeric vector of catch biomass over time period of assessment
+#' @param indices_b matrix of biomass surveys (CPUE) of dimensions: no. of surveys x no.years
+#' @param ts numeric. Survey timing parameters
+#' @param mwts matrix of mean weights from sampling with dimensions: 3 x no. years. recruit mean weights \eqn{\bar{Y}} (first row), previously exploited biomass mean weights \eqn{\bar{Z}} (second row) and entire assessed biomass mean weight \eqn{\bar{X}} (third row).
+#' @param tsp numeric. Timing of spawning. Default to 0 (start of year).
+#' @param rho numeric. Growth parameter, slope of linear growth model.
+#' @param W numeric. Growth parameter, intercept of linear growth model.
+#' @param ind_l_wt numeric. Survey weighting in the likelihood. Defaults to 1 fro each survey, ie.e. equal weighting
+#' @param start_q Starting values for survey catchability parameters. Default is 1e-6
+#' @param start_indexsigma Starting values for survey sd parameters. Default is 0.1
+#' @param start_sigma Starting parameter value fraction of population that survives natural moratlity. Default is \eqn{e^{0.2}}
+#' @param start_rec_a Starting parameter value for the 'a' parameter of the Beverton-Holt stock-recruit function. The asymptotic biomass of recruits. Default is 1/5*max(catch_b).
+#' @param start_rec_b Starting parameter value for the 'b' parameter of the Beverton-Holt stock-recruit function. The spawning stock biomass needed to produce a/2 on average. Default is 4*max(catch_b).
+#' @param spawn_prop proportion of biomass that is mature. Defaults to 1 for each year. 
+#' @param fix_sigma logical. logical. Should survival be fixed in the model
+#' @param fix_indexsigma logical. Should survey standard deviation be fixed in the model
 #' @param adrep logical. Whether the user would like the ADreport variables (and their derivatives) reported for starting parameters.
 
-#' @return list
-#' Details of the object returned can be found in the schnute vignette
+#' @return List with components for optimiser in R. This output is that of the
+#'   function \link[TMB]{MakeADFun} from TMB
+#'   
+#' Access (transformed) starting values of parameters to be estimated with
+#' \code{x$par} (where x is the schnute_orig object) to see what parameters are to be estimated.
 #' @export
-#' @examples
-# #' fbind(iris$Species[c(1, 51, 101)], PlantGrowth$group[c(1, 11, 21)])
-
+#' @examples \dontrun{ obj <- schnute_orig(catch_b = catch_biomass, indices_b = obs_fill,
+#' ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma)}
 
 schnute_orig<-function(version = 2,catch_b,indices_b,ts, mwts,tsp = 0, mu = 0.5, rho, W, ind_l_wt = 1, start_q = 1e-8, start_indexsigma = 0.1 , start_sigma = exp(-0.2), start_rec_a, start_rec_b, spawn_prop = 1, fix_sigma = TRUE,fix_indexsigma = FALSE, adrep = FALSE){
 

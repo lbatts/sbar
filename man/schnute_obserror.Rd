@@ -2,7 +2,8 @@
 % Please edit documentation in R/schnute_obserror.R
 \name{schnute_obserror}
 \alias{schnute_obserror}
-\title{Prepare list for Schnute adapted observation error assessment for an optimiser}
+\title{Prepare an object for Schnute Adapted Observation Error Model assessment for
+an optimiser}
 \usage{
 schnute_obserror(
   version = 2,
@@ -82,8 +83,68 @@ schnute_obserror(
 \item{adrep}{logical. Whether the user would like the ADreport variables (and their derivatives) reported for starting parameters.}
 }
 \value{
-List with components for optimiser in R. This output is that of the function \link[TMB]{MakeADFun} from TMB
+List with components for optimiser in R. This output is that of the
+function \link[TMB]{MakeADFun} from TMB
+
+Access (transformed) starting values of parameters to be estimated with
+\code{x$par} (where x is the schnute_obserror object) to see what parameters are to be estimated.
 }
 \description{
-Create list with TMB framework, including data, gradients and NLL function for a Schnute adapted observation error assessment that can be optimised.
+Create an object with TMB framework, including data, gradients and NLL
+function for a Schnute adapted observation error assessment that can be
+optimised.
+}
+\details{
+#' \code{schnute_obserror} is simply a wrapper function that gives the output
+from \code{\link[TMB]{MakeADFun}} from TMB, i.e. an objective function with
+derivatives, hessian etc. Otimisation and extraction of values from the
+assessment models has been kept separate to allow flexibility with
+optimisation methods as well as easy access to \code{\link[TMB]{MakeADFun}}
+outputs such as the hessian, gradients etc. See
+\url{http://kaskr.github.io/adcomp/_book/Introduction.html} and TMB
+documentation for details. Users should refer to the \code{sbar} vignette by
+running \code{vignette("intro_to_sbar", "sbar")} for for details on the
+\code{schnute_obserror} function.
+
+The table below gives the outputs and description of the values that can be
+extracted from this assessment model after optimisation and
+\code{summary(TMB::sdreport(x))} of the \code{schnute_obserror} object.
+
+\tabular{ll}{ Output         \tab Description             \cr logitq     \tab
+logit transformed survey catchability              \cr logB0      \tab log
+transformed biomass in the first time step       \cr logitsigma       \tab
+logit transformed survival of natural mortality  \cr logindex_sigma \tab log
+transformed survey standard deviation         \cr logcatch_sigma       \tab
+log transformed catch standard deviation  \cr logf_calc       \tab log
+transformed fishing mortality  \cr lnb           \tab log transformed total
+biomass                        \cr lnpr           \tab log transformed
+previously-exploited biomass               \cr lnr           \tab log
+transformed recruit biomass                        \cr lnN           \tab log
+transformed total numbers                        \cr lnPR           \tab log
+transformed previously-exploited or post-recruit  numbers               \cr
+lnR           \tab log transformed recruit numbers                        \cr
+lnC           \tab log transformed predicted catch numbers
+\cr biomass       \tab total biomass                        \cr B0    \tab
+total biomass in the first time step  \cr N       \tab total numbers
+\cr ssb       \tab spawning biomass                        \cr post_rec
+\tab previously-exploited or post-recruit biomass                        \cr
+PR       \tab previously-exploited or post-recruit numbers
+\cr rec_bio       \tab recruit biomass                        \cr rec_no
+\tab recruit numbers                        \cr C       \tab predicted catch
+numbers                        \cr catch_pred       \tab predicted catch
+biomass                        \cr logpred_survey \tab log transformed
+predicted survey indices           \cr omega       \tab fraction of total
+biomass in a given year due to newly recruited fish \cr mu       \tab
+fraction of the catch removed before natural mortality \cr index_sigma
+\tab Survey indices standard deviation\cr catch_sigma \tab catch standard
+deviation\cr sigma          \tab survival of natural mortality\cr
+logrec_param          \tab log transformed recruit parameters from a
+Beverton-Holt SR function if estimated in versions 1 or 3 \cr rec_param
+\tab the two recruit parameters fro a Beverton-Holt SR functionif estimated
+in versions 1 or 3\cr qhat           \tab survey catchability
+}
+}
+\examples{
+\dontrun{ obj <- schnute_obserror(catch_b = catch_biomass, indices_b = obs,
+ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma)}
 }

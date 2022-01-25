@@ -7,9 +7,9 @@
 \method{plot}{sbarclass}(x, out = "fit", ...)
 }
 \arguments{
-\item{x}{sbar}
+\item{x}{object of class:sbarclass}
 
-\item{out}{character}
+\item{out}{a character that specifies whether the "fit" or "stock" should be plotted}
 
 \item{...}{No specific usage}
 }
@@ -17,5 +17,16 @@
 list
 }
 \description{
-Plot object with class:'sbarclass', plot fit or stock predictions
+Plot an object with class:'sbarclass', plot fit or stock predictions with ggplot functions
+}
+\details{
+See vignette for a detailed example of this function in use.
+}
+\examples{
+\dontrun{ 
+plot(x,out="fit")
+  plot(x,out="stock")}
+}
+\seealso{
+\code{\link{makesbarclass}} for to conversion into an object that can be used by this function.
 }

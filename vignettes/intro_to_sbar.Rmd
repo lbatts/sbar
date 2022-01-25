@@ -1,0 +1,99 @@
+---
+title: "intro_to_sbar"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{intro_to_sbar}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+---
+title: "Introduction to sbar"
+author: "Luke Batts"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+  knitr:::html_vignette: null
+  pdf_document:
+    includes:
+      in_header: "wraptext.tex"
+    extra_dependencies: xcolor
+    keep_tex: yes
+    citation_package: natbib
+    number_sections: yes
+fig_caption: yes
+fontsize: 12pt
+geometry: "left=25mm,top=30mm,bottom=30mm,left=40mm,headheight=40pt"
+bibliography: sbar.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+options(rmarkdown.html_vignette.check_title = FALSE)
+```
+```{=latex}
+%\definecolor{codegray}{HTML}{cccccc}
+\definecolor{mygrey}{gray}{0.95}
+\let\textttOrig\texttt
+\renewcommand{\texttt}[1]{\textttOrig{\colorbox{mygrey}{#1}}}
+```
+<!-- \definecolor{fancyTextColor}{HTML}{4284f5} -->
+<!-- \definecolor{hightlightColor}{HTML}{FFFF66} -->
+
+# Introduction
+<!-- Here is some \colorbox{hightlightColor}{Markdown} and \colorbox{hightlightColor}{`TMB`} -->
+The application of stock assessments is an important aspect of fisheries management, as they facilitate understanding of the population dynamics of fish stocks \citep{hilborn1992,cadrin2014,dichmont2016rev}. Assessment models use an array of different data sources to estimate key values for fish stocks, determining the size (relative or absolute) of stocks and the extent to which they are exploited. This information is then used to inform management decisions and assess the status of the stock \citep{hilborn1992,cadrin2014}. 
+
+Stage-based assessment models are a somewhat underutilised from of stock assessment model that is an alternative middle ground to aggregate assessment models such as SPiCT \citep{pedersen2017} and more complex compositional assessment models \citep[e.g.][]{begley2004overview,methot2013stock,jardim2014if,nielsen2014,cadigan2017spatiotemporal}. Stage-based assessment models can be be useful as the generally have simpler population dynamics, reduced assumptions and less data requirements than many other assessment models. They also incorporate information on recruitment, by modelling the lag between a recruitment stage and the rest of the population.
+
+```sbar``` is an R package for fitting stage-based fisheries stock assessment models in R.  Assessments are built upon the **Template Model Builder (TMB)** framework, taking advantage of the automatic differentiation of the likelihood [@tmb]. Two theoretically different stage-based assessment approaches are implemented:  
+
+1. **CSA (Catch-Survey Analysis)** - the well-known numbers-based two-stage model
+2. Biomass-based delay-difference two-stage models based on the theoretical paper by @schnute1987
+    * ***Original Schnute Process Error model***
+    * ***Adapted Schnute Observation Error model***
+    
+Standard implementations of these two approaches consist of two stages; fish recruited to the exploited population in a given year, and fish that recruited in previous years.
+    
+    
+### General details    
+* Models are fit by maximising the total log-likelihood of the objective function. 
+* In both approaches, surveys and catch (where relevant) are assumed to be lognormally distributed. 
+* Catch is assumed to be fully selected.
+* Surveys are also assumed to have no selectivity pattern, however this assumption can be relaxed for CSA.
+* Stages (recruits and post-recruits for CSA, recruit biomass and previously-exploited biomass for Schnute models) can be defined by the user by age, length or any other grouping that offers distinct stages that move from one to the other over a given time period. **NB** post-recruit stage of CSA and previously exploited stage for Schnute models are analogous. 
+* Assessments models are limited to the time period covered by surveys and cannot estimate stock values outside of this.
+
+We explore the three models in this vignette.
+
+## Data and other useful packages
+
+Stock data loaded with `sbar` are for the black-bellied anglerfish (*Lophius budegassa*) stock in the Celtic Seas and northern Bay of Biscay (ICES Subareas 7, 8a-b and 8d.), which was collated for ICES and processed by Hans Gerritsen. 
+
+Data are age-structured, so in the interest of simplicity we'll define stages (recruits = age 0 and post-recruits/previously exploited = age 1+) according to their age. In reality, users may want to explore other methods to identify the recruit stage in length frequecny data [@bhattacharya1967,@taylor2017; @batts2019estimating]. 
+
+Data are structured as [FLR](https://flr-project.org/) classes and so the appropriate syntax is required. Those unfamiliar with FLR can restructure the S4 objects to dataframes easily if preferred and extract the data. `sbar` assessment models are not built within the FLR framework. 
+
+`TMBhelper` is a very useful package that shoudl be installed with \code{sbar} but needs to be loaded if you choose to use it. This package can be used for optimisation of TMB objective functions, as well as further explore convergence and estimability of parameters. 
+
+
+```{r libraries, echo=TRUE,message=FALSE,warning=FALSE}
+library(sbar)
+library(TMBhelper)
+```
+```{r data}
+data("ank78")
+years <- as.character(2003:2020) 
+no.years <- length(years)
+```
