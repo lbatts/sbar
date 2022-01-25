@@ -90,7 +90,7 @@ optimisation methods as well as easy access to \code{\link[TMB]{MakeADFun}}
 outputs such as the hessian, gradients etc. See
 \url{http://kaskr.github.io/adcomp/_book/Introduction.html} and TMB
 documentation for details. Users should refer to the \code{sbar} vignette by
-running \code{vignette("intro_to_sbar", "sbar")} for for details on the
+running \code{vignette("intro_to_sbar", "sbar")} for details on the
 \code{csa} function.
 
 The table below gives the outputs and description of the values that can be

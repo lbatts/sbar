@@ -56,6 +56,7 @@
 #' @param ts numeric. Survey timing parameters
 #' @param mwts matrix of mean weights from sampling with dimensions: 3 x no. years. recruit mean weights \eqn{\bar{Y}} (first row), previously exploited biomass mean weights \eqn{\bar{Z}} (second row) and entire assessed biomass mean weight \eqn{\bar{X}} (third row).
 #' @param tsp numeric. Timing of spawning. Default to 0 (start of year).
+#' @param mu numeric. proportion of catch taken before natural mortality.
 #' @param rho numeric. Growth parameter, slope of linear growth model.
 #' @param W numeric. Growth parameter, intercept of linear growth model.
 #' @param ind_l_wt numeric. Survey weighting in the likelihood. Defaults to 1 fro each survey, ie.e. equal weighting

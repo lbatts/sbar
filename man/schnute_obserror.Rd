@@ -72,13 +72,13 @@ schnute_obserror(
 
 \item{start_catchsigma}{Starting parameter value for catch sd. Default is 0.1}
 
-\item{fix_sigma}{logical}
+\item{fix_sigma}{logical. logical. Should survival be fixed in the model}
 
-\item{fix_B0}{logical}
+\item{fix_B0}{logical. Should biomass in the first time step be fixed in the model}
 
-\item{fix_indexsigma}{logical}
+\item{fix_indexsigma}{logical. Should survey standard deviation be fixed in the model}
 
-\item{fix_catchsigma}{logical}
+\item{fix_catchsigma}{logical. Should catch standard deviation be fixed in the model}
 
 \item{adrep}{logical. Whether the user would like the ADreport variables (and their derivatives) reported for starting parameters.}
 }
@@ -95,7 +95,7 @@ function for a Schnute adapted observation error assessment that can be
 optimised.
 }
 \details{
-#' \code{schnute_obserror} is simply a wrapper function that gives the output
+\code{schnute_obserror} is simply a wrapper function that gives the output
 from \code{\link[TMB]{MakeADFun}} from TMB, i.e. an objective function with
 derivatives, hessian etc. Otimisation and extraction of values from the
 assessment models has been kept separate to allow flexibility with
@@ -103,7 +103,7 @@ optimisation methods as well as easy access to \code{\link[TMB]{MakeADFun}}
 outputs such as the hessian, gradients etc. See
 \url{http://kaskr.github.io/adcomp/_book/Introduction.html} and TMB
 documentation for details. Users should refer to the \code{sbar} vignette by
-running \code{vignette("intro_to_sbar", "sbar")} for for details on the
+running \code{vignette("intro_to_sbar", "sbar")} for details on the
 \code{schnute_obserror} function.
 
 The table below gives the outputs and description of the values that can be

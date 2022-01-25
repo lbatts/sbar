@@ -7,55 +7,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
----
-title: "Introduction to sbar"
-author: "Luke Batts"
-date: "`r Sys.Date()`"
-output:
-  html_document:
-    df_print: paged
-  knitr:::html_vignette: null
-  pdf_document:
-    includes:
-      in_header: "wraptext.tex"
-    extra_dependencies: xcolor
-    keep_tex: yes
-    citation_package: natbib
-    number_sections: yes
-fig_caption: yes
-fontsize: 12pt
-geometry: "left=25mm,top=30mm,bottom=30mm,left=40mm,headheight=40pt"
-bibliography: sbar.bib
----
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-options(rmarkdown.html_vignette.check_title = FALSE)
-```
-```{=latex}
-%\definecolor{codegray}{HTML}{cccccc}
-\definecolor{mygrey}{gray}{0.95}
-\let\textttOrig\texttt
-\renewcommand{\texttt}[1]{\textttOrig{\colorbox{mygrey}{#1}}}
-```
-<!-- \definecolor{fancyTextColor}{HTML}{4284f5} -->
-<!-- \definecolor{hightlightColor}{HTML}{FFFF66} -->
-
 # Introduction
 <!-- Here is some \colorbox{hightlightColor}{Markdown} and \colorbox{hightlightColor}{`TMB`} -->
-The application of stock assessments is an important aspect of fisheries management, as they facilitate understanding of the population dynamics of fish stocks \citep{hilborn1992,cadrin2014,dichmont2016rev}. Assessment models use an array of different data sources to estimate key values for fish stocks, determining the size (relative or absolute) of stocks and the extent to which they are exploited. This information is then used to inform management decisions and assess the status of the stock \citep{hilborn1992,cadrin2014}. 
 
-Stage-based assessment models are a somewhat underutilised from of stock assessment model that is an alternative middle ground to aggregate assessment models such as SPiCT \citep{pedersen2017} and more complex compositional assessment models \citep[e.g.][]{begley2004overview,methot2013stock,jardim2014if,nielsen2014,cadigan2017spatiotemporal}. Stage-based assessment models can be be useful as the generally have simpler population dynamics, reduced assumptions and less data requirements than many other assessment models. They also incorporate information on recruitment, by modelling the lag between a recruitment stage and the rest of the population.
+Assessment models determine the size (relative of absolute) of stocks and the extent to which they are exploited. This information is an important aspect of fisheries management, as it facilitates understanding of the population dynamics of fish stocks \citep{hilborn1992,cadrin2014,dichmont2016rev}. Assessment models use an array of different data sources to estimate key values for fish stocks, determining the size (relative or absolute) of stocks and the extent to which they are exploited. This information is then used to inform management decisions and assess the status of the stock \citep{hilborn1992,cadrin2014}. 
+
+Assessment models range in complexity from aggregate models (which require data on total catch over time and an abundance index for the stock) to compositional models (which also require information on the age-composition of the stock). Stage-based models occupy a middle ground in terms of complexity; they generally have simpler population dynamics, more general assumptions and lower data requirements than more complex assessment models, yet they can account for variability in recruitment, which simpler models cannot. Stage-based models are useful in situations where age data is not available but where the cohort of recruiting fish can be identified clearly (e.g. because they form a clear mode in the length frequency distribution). They are particularly useful in situations where the population structure is affected by irregular events of high recruitment. Considering the large number of stocks without reliable age data for which an assumption of constant recruitment is not appropriate, is it somewhat surprising that stage-based assessment models are not more widely used. This may be in part due to the limited availability of these models in the R environment.
 
 ```sbar``` is an R package for fitting stage-based fisheries stock assessment models in R.  Assessments are built upon the **Template Model Builder (TMB)** framework, taking advantage of the automatic differentiation of the likelihood [@tmb]. Two theoretically different stage-based assessment approaches are implemented:  
 
@@ -64,36 +21,508 @@ Stage-based assessment models are a somewhat underutilised from of stock assessm
     * ***Original Schnute Process Error model***
     * ***Adapted Schnute Observation Error model***
     
-Standard implementations of these two approaches consist of two stages; fish recruited to the exploited population in a given year, and fish that recruited in previous years.
+Standard implementations of these two approaches consist of two stages; fish recruited to the exploited population in a given year, and fish that recruited in previous years. Minimum data required for these assessments consists of at least one survey index of relative abundance and a catch time series corresponding to the survey period. There also need to be some method for splitting the survey data into the two stages (e.g. size or age). 
     
+We explore the three models found in the `sbar` R package in this vignette.
+
     
-### General details    
+## General details    
+* Models require a time series (numbers-based or biomass-based) of catch and at least one survey time series.
 * Models are fit by maximising the total log-likelihood of the objective function. 
 * In both approaches, surveys and catch (where relevant) are assumed to be lognormally distributed. 
-* Catch is assumed to be fully selected.
-* Surveys are also assumed to have no selectivity pattern, however this assumption can be relaxed for CSA.
+* Catch is assumed to be fully selected over both stages (i.e. recruitment stage is fully selected)
+* Survey catches are assumed to have the same selectivity pattern as the catches (i.e. fully selected), however this assumption can be relaxed for CSA.
 * Stages (recruits and post-recruits for CSA, recruit biomass and previously-exploited biomass for Schnute models) can be defined by the user by age, length or any other grouping that offers distinct stages that move from one to the other over a given time period. **NB** post-recruit stage of CSA and previously exploited stage for Schnute models are analogous. 
 * Assessments models are limited to the time period covered by surveys and cannot estimate stock values outside of this.
 
-We explore the three models in this vignette.
+# Installation, data and other useful packages
 
-## Data and other useful packages
+## Installation
+You can install the `sbar` package from the github repository with the `devtools` package:
 
-Stock data loaded with `sbar` are for the black-bellied anglerfish (*Lophius budegassa*) stock in the Celtic Seas and northern Bay of Biscay (ICES Subareas 7, 8a-b and 8d.), which was collated for ICES and processed by Hans Gerritsen. 
+```{r install, echo=TRUE,message=FALSE,warning=FALSE,eval=F}
+devtools::install_github("lbatts/sbar")
+```
 
-Data are age-structured, so in the interest of simplicity we'll define stages (recruits = age 0 and post-recruits/previously exploited = age 1+) according to their age. In reality, users may want to explore other methods to identify the recruit stage in length frequecny data [@bhattacharya1967,@taylor2017; @batts2019estimating]. 
+## Data
+Example stock data loaded with `sbar` are for the black-bellied anglerfish (*Lophius budegassa*) stock in the Celtic Seas and northern Bay of Biscay (ICES Subareas 7, 8a-b and 8d.), which was collated for ICES and processed by Hans Gerritsen. 
 
-Data are structured as [FLR](https://flr-project.org/) classes and so the appropriate syntax is required. Those unfamiliar with FLR can restructure the S4 objects to dataframes easily if preferred and extract the data. `sbar` assessment models are not built within the FLR framework. 
+Data are age-structured, so in the interest of simplicity we'll define stages (recruits = age 0 and post-recruits/previously exploited = age 1+) according to their age. In reality, users may want to explore other methods to identify the recruit stage in length frequency data [@bhattacharya1967,@taylor2017; @batts2019estimating]. 
 
-`TMBhelper` is a very useful package that shoudl be installed with \code{sbar} but needs to be loaded if you choose to use it. This package can be used for optimisation of TMB objective functions, as well as further explore convergence and estimability of parameters. 
+## Setup
+Load the `sbar` and `TMBHelper` packages. `TMBhelper` is a very useful package that should be automatically installed with `sbar` but needs to be loaded if you choose to use it. This package can be used for optimisation of TMB objective functions, as well as further explore convergence and estimability of parameters. 
 
 
 ```{r libraries, echo=TRUE,message=FALSE,warning=FALSE}
 library(sbar)
 library(TMBhelper)
 ```
+
+
+Load the data and define `years` and `no.years` objects. These variables are based on the years that are covered by at least one survey as `sbar` cannot estimate stock levels outside of survey data (i.e. if catch data goes further back).   
+
 ```{r data}
 data("ank78")
+
 years <- as.character(2003:2020) 
 no.years <- length(years)
 ```
+  
+# Introduction to CSA
+
+CSA is a numbers-based depletion model first described in @collie1983. The most recent version, which differs somewhat from the original, can be found in the NOAA Fish and Fisheries Toolbox (where a GUI can be downloaded to run the assessment model) [@nft] .  Our implementation of the CSA assessment is very similar to the NOAA version, but with a few minor adjustments to increase the flexibility of the model. These primarily are:
+
+* An option for including stand-alone post recruit survey(s).
+* An option to estimate survey specific error.
+* General flexibility in estimating or fixing certain parameters in the model (e.g. survey CV, catch CV, natural mortality)
+
+## CSA - Quick start 
+
+Observations needed for a CSA assessment are catch numbers and a matrix of survey indices (catch numbers per unit effort). A survey split into a recruit index and post-recruit index (i.e. one survey, two indices) is the minimum requirement. In this example we use the combined IBTS survey data that has been processed already into numbers-at-ages. This gives a simple way to define recruits (age 0) and post-recruits (age 1+). 
+
+```{r catch and ind,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+catch.no <- ank78$catch$total_no
+
+no.ind = 2 
+
+obs <- matrix(NA,nrow=no.ind,ncol=no.years)
+obs[1,] <- ank78$ibts$rec_no
+obs[2,] <- ank78$ibts$postrec_no
+
+obs[obs == 0] <- NA # Make sure missing years are NAs
+```
+
+Many of the settings for running CSA have defaults but the function requires some user defined values. `indices_att` contains attributes relating to `obs`, indicating if indices (each row) are from the same survey (i.e. same number) and what type of indices they are: 
+
+1.    recruit index
+2.    post-recruit index
+3.    undivided index
+
+Here, we define that `obs` contains two survey indices from the same survey `survey = c(1,1)` and that the first row of the matrix is a recruit index together with the post-recruit index in the second row `type = c(1,2)`. As mentioned above, CSA allows stand-alone post-recruit indices (no corresponding recruit index) in addition to at least one split survey (recruit and post-recruit indices). In theory, the user could input a stand-alone recruit index in addition to a split survey, however it is unlikely that the model could estimate a survey catchability parameter.
+
+```{r setup}
+indices_att <- data.frame(survey = c(1,1),type = c(1,2))
+timing <- ank78$surv_timing["ibts"] # survey timing
+M <- ank78$M #natural mortality
+M
+```
+
+Lets run the assessment with default settings. There's warning messages letting you know that defaults are being used for key inputs.
+
+```{r makeadfun,tidy=TRUE, tidy.opts=list(width.cutoff=45)}
+obj <- csa(catch_n = catch.no, indices_no = obs, indices_att = indices_att, ts = timing, start_nmort = M)
+```
+For those familiar with `TMB`, `csa` is simply a wrapper function that gives the output from `TMB::MakeADFun`, i.e. an objective function with derivatives, hessian etc. We have kept optimisation and extraction of values from the assessment models separate to allow flexibility with optimisation methods as well as easy access to `TMB` outputs such as the hessian, gradients etc. See **TMB** documentation for details.
+
+Optimising with `nlminb` looks like this, note starting values for parameters are already defined in `obj` by the `csa` function.
+
+```{r opt}
+opt <- nlminb(start=obj$par,objective=obj$fn,gradient=obj$gr)
+opt$convergence
+```
+
+\scriptsize 	
+
+
+```{r par2,echo=T}
+opt$par
+```
+\normalsize
+After optimisation, `sdreport` should be used to calculate standard deviations of all model parameters. When summarised (to `obs.srep`) this gives a matrix with parameters estimated from optimisation, as well as standard deviations of those parameters (estimated within TMB via the delta-method).  
+
+```{r sdrep}
+obs.srep <- summary(TMB::sdreport(obj))
+```
+
+There are also many other estimated or calculated values from the assessment model with associated error estimates (if relevant) given here. For example `"phat"` is the estimated post-recruit numbers:
+```{r phat}
+obs.srep[row.names(obs.srep) == "phat",]
+```
+A list of all the outputs that are reported from the assessment models in `sbar` are given in the function help files (e.g. `?csa`).  
+
+If you would like to optimise with `nlminb` there's also a handy function in `TMBhelper` to do the previous step (and more) that gives practically the same results. See `?TMBhelper::fit_tmb` for details.
+
+```{r fit_tmb,warning=FALSE,message=FALSE}
+fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
+all.equal(fit$par,opt$par)
+all.equal(fit$objective,opt$objective)
+all.equal(summary(fit$SD),obs.srep)
+```
+## Simple plot of CSA results
+
+An easy way to visualise the key outputs from an `sbar` assessment model is to generate an object with `makeasbarclass` and then plot.
+
+
+
+```{r sbarclass,warning=FALSE, fig.cap = c("Observations and predicted values for catch numbers and survey indices for a CSA assessment model fit on black-bellied anglerfish. Shaded area denotes ±2 SE on the predicted mean (approximate asymptotic 95% confidence interval).", "Estimated stock numbers and fishing mortality for a CSA assessment model fit on black-bellied anglerfish. Shaded area denotes ±2 SE on the predicted mean (approximate asymptotic 95% confidence interval).")}
+survnames<- c("IBTS recruits (CPUE)","IBTS post-recruits (CPUE)")
+x <- makesbarclass(obs.srep,survnames,catch.no,obs,years)
+
+plot(x,out="fit")
+plot(x,out="stock")
+
+```
+
+# Introduction to Schnute models
+
+@schnute1987 describes a size -based delay-difference model linking population size structure and mean weights. Growth is assumed to be deterministic and occurs at the end of the year. Mean weights are assumed to not vary throughout the year. 
+
+An interesting aspect of this approach is that it offers flexibility in the assumptions regarding the relative importance of recruitment and previously-exploited biomass (i.e. whether the population levels of a fish stock are primarily driven by recruitment or previously-exploited biomass), which underlies the estimation of entire biomass (determined by function argument `version`). We look at this in more detail in the section: *[Schnute models in more detail]*. 
+
+In `sbar` we implement two interpretations of the theoretical model proposed by @schnute1987. The first which we call the *Original Schnute Process Error model* (run with `schnute_orig`), which has an autoregressive process error, takes catch biomass as known and assumes no observation error. The other model we call the *Adapted Schnute Observation Error model* model (run with `schnute_obserror`), which fits to survey and catch biomass, in addition to being an observation-error-only. Users should note that \citep[][\textit{accepted}]{Batts2021} found the *Original Schnute Process Error model* was not consistent in self-tests, indicated this model may be structurally biased [@deroba2015simulation]. 
+
+
+## Schnute models - quick start 
+
+Schnute assumes weight does not change through the year. This maybe a little confusing at first but makes sense under the model assumptions and should be considered when preparing your own data for an `sbar` stock assessment model.
+
+There are three options (1,2 or 3) for the function argument `version`, but for these 'quick start' examples we will use `version = 2` (default), which requires a matrix of sampled mean fish weights for the entire stock and for each stage: 
+  
+  * recruit mean weights $\bar{Y}$ (first row)
+* previously exploited biomass mean fish weights $\bar{Z}$ (second row)
+* entire assessed biomass mean fish weights $\bar{X}$ (third row).
+
+Ideally mean fish weights should come from a sample that is not affected by selectivity (i.e. usually catch has lower selectivity in smaller fish), so in this example we use survey index (combined IBTS survey) to calculate mean fish weights as they're less likely to be (as) biased. 
+
+```{r mean weights, schn,tidy=TRUE, tidy.opts=list(width.cutoff=45)}
+Y <- ank78$ibts$rec_bio/ank78$ibts$rec_no
+Z <- ank78$ibts$postrec_bio/ank78$ibts$postrec_no
+X <- ank78$ibts$total_bio/ank78$ibts$total_no
+```
+
+Then we can populate a matrix with mean fish weights from each stage and the overall mean fish weight.
+
+```{r mean weights2, schn,tidy=TRUE, tidy.opts=list(width.cutoff=45)}
+
+mwts <- matrix(NA,ncol=no.years,nrow=3)
+mwts[1,] <- Y
+mwts[2,] <- Z
+mwts[3,] <- X
+```
+```{r mwts plot1, echo = FALSE,fig.align='center',fig.cap="Mean fish weights of stages and entire assessed population of ank78 from the combined IBTS survey"}
+
+plot(y=Y,x=years,type="b",ylim=c(0,1.5), xlab="Years",ylab="mean wight (kg)")
+lines(y=Z,x=years,col=2,type="b")
+lines(y=X,x=years,col=4,type="b")
+legend("topright", legend = c("Y (recruit mean fish weight)", "Z (previously-exploited stage mean fish weight)", "X (Total biomass mean fish weight)"), col = c(1,2,4), lty = 1,cex=0.5)
+```
+
+There's an issue in 2017 as there's no survey data for this year, so we linearly interpolate between the pre and proceeding points (using the function "approx" in R) for each times series.
+
+```{r 2017 mean}
+Y2017<-approx(x = c(2016, 2018), y = mwts[1,c(14,16)], xout = 2017)$y
+Z2017<-approx(x = c(2016, 2018), y = mwts[2,c(14,16)], xout = 2017)$y
+X2017<-approx(x = c(2016, 2018), y = mwts[3,c(14,16)], xout = 2017)$y
+
+mwts[,15] <- c(Y2017,Z2017,X2017)
+```
+```{r mwts plot2, echo = FALSE,fig.align='center',fig.cap="Mean fish weights of stages and entire assessed population of ank78 from the combined IBTS survey"}
+plot(y = mwts[1,],x = years,type = "b",ylim = c(0,1.5), xlab="Years", ylab = "mean wight (kg)")
+lines(y = mwts[2,],x = years,col = 2,type = "b")
+lines(y = mwts[3,],x = years,col = 4,type = "b")
+legend("topright", legend = c("Y (recruit mean fish weight)", "Z (previously-exploited stage mean fish weight)", "X (Total biomass mean fish weight)"), col = c(1,2,4), lty = 1,cex=0.5)
+```
+
+Next, we need growth parameters. This aspect is discussed in more detail in *Section 4* but for now just note that we fit a linear model to overall mean fish weights and previously exploited mean fish weights ($\bar{Z}_{t+1}$ vs $\bar{X}_t$)
+
+```{r growth}
+mod <- lm(mwts[2,2:no.years]~mwts[3,1:no.years-1])
+W1 <- coef(mod)[1]
+rho1 <- coef(mod)[2]
+```
+
+Extract the catch biomass and generate a biomass index from the data.
+```{r catch survey}
+catch_biomass <- ank78$catch$total_bio
+index1 <- ank78$ibts$total_bio
+
+obs <- matrix(NA,nrow=1,ncol=no.years)
+obs[1,] <- index1 # 
+obs[obs==0] <- NA
+
+sigma <- exp(-M)
+mu <- 0.5
+```
+
+`sigma` is survival (i.e. the proportion of the population that survives natural mortality), where sigma = $e^{-M}$. `mu` is the proportion of the fraction of the catch removed before natural mortality and is user defined in the *Original Schnute Process Error model* but calculated internally in the *Adapted Schnute Observation Error model*.
+
+### *Original Schnute Process Error model*
+
+Firstly, we need to use `approx` again to obtain a value for the survey index in the year where we have a missing value. In 2017, there were issues with survey coverage of the IBTS. Due to the internal structure of the process error within the model, the *Original Schnute Process Error model* cannot run with missing survey data. 
+
+For demonstration purposes we use `approx`, but ideally other methods should be explored (e.g. VAST).
+
+```{r s0 survey}
+obs_fill<-obs
+obs_fill[,15] <- approx(x = c(2016, 2018), y = index1[c(14,16)], xout = 2017)$y
+```
+
+We can then run the assessment model with some default arguments and then optimise in the same manner as CSA.
+
+```{r assessment sorig}
+obj <- schnute_orig(catch_b = catch_biomass, indices_b = obs_fill, ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma)
+fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
+obs.srep<-summary(fit$SD)
+```
+
+Even though the model converged in nlminb, lets do some due diligence and check the estimability with `TMBhelp::check_estimability`.
+
+```{r estim 1}
+check_estimability(obj)
+```
+All parameters are estimable. **However, in other work self-tests for *Original Schnute Process Error model* showed this model was inherently biased and not self-consistent. This indicates structural uncertainty in the model and extra caution is urged when using this model.**
+
+```{r sbarclass schnute,warning=FALSE,fig.cap = c("Observations and predicted values for the survey index for a Original Schnute Process Error model fit on black-bellied anglerfish. Shaded area denotes ±2 SE on the predicted mean (approximate asymptotic 95% confidence interval).","Estimated stock biomass, previously-exploited biomass, recruit biomass and fishing mortality for an Original Schnute Process Error model fit on black-bellied anglerfish. Shaded area denotes ±2 SE on the predicted mean (approximate asymptotic 95% confidence interval).")}
+
+survnames<- c("IBTS biomass (CPUE)")
+x <- makesbarclass(obs.srep,survnames,catch_biomass,obs_fill,years)
+
+plot(x,out="fit")
+
+plot(x,out="stock")
+```
+
+Note that this model does not predict the initial year of the survey index and fishing mortality is notr estimated as catch is taken in the model without error.
+
+
+### *Adapted Schnute Observation Error mode* - quick start
+
+We can run the *Adapted Schnute Observation Error model* assessment with the same data. Again, there are a number of defaults which we will leave for this example but will explore in the following section. An important point here is that the assessment can deal with missing survey data so we'll use the original biomass index `obs` rather than `obs_fill`, as predicting without this data is preferable to interpolating externally.
+
+```{r assessment sobs}
+obj <- schnute_obserror(catch_b = catch_biomass, indices_b = obs, ts = timing, mwts = mwts, rho = rho1, W = W1, start_sigma = sigma)
+
+
+fit <- fit_tmb(obj = obj, getHessian = T ,quiet=T,control = list(trace=0))
+
+obs.srep <- summary(fit$SD)
+
+check_estimability(obj)
+
+```
+
+Check out the fits and stock predictions 
+
+```{r sbarclass schnute 2,warning=FALSE,  fig.cap = c("Observations and predicted values for the survey index for a Adpated Schnute Observation Error model fit on black-bellied anglerfish. Shaded area denotes ±2 SE on the predicted mean (approximate asymptotic 95% confidence interval).","Estimated stock biomass, previously-exploited biomass, recruit biomass and fishing mortality for an Adpated Schnute Observation Error model fit on black-bellied anglerfish. Shaded area denotes ±2 SE on the predicted mean (approximate asymptotic 95% confidence interval).")}
+
+survnames <- c("IBTS biomass (CPUE)")
+x <- makesbarclass(obs.srep,survnames,catch_biomass,obs,years)
+
+plot(x,out="stock")
+plot(x,out="fit")
+```
+
+# Schnute models in more detail
+
+In this section we will go into more detail into certain aspects of the Schnute models implemented within `sbar`. To demonstrate these aspects we'll run through an assessment with the more complex  \textit{Adapted Schnute Observation Error model} on the black-bellied anglerfish stock introduced earlier.
+
+In this example we'll also try to fit to an additional survey which is the IE-IAMS monkfish and megrim survey. This survey runs from 2006 to 2020 but has quite a few missing years.
+
+\scriptsize 	
+
+```{r libraries data s, echo=TRUE,message=FALSE,warning=FALSE}
+head(ank78$ieiams)
+
+index2 <- ank78$ieiams$total_bio
+```
+\normalsize
+We still use the IBTS survey for stage mean fish weights ($\bar{Z}^{'}$, $\bar{Z}^{'}$ and $\bar{X}^{'}$) as this is the closest to unbiased (i.e. not skewed by selectivity) mean fish weights samples we can get. Catch is likely to be too biased by the selectivity of the fleet and we know the IE-IAMS survey targets larger fish. 
+
+Also a reminder that there's no survey data for IBTS in 2017, this isn't an issue for this assessment model with the survey observations but we still need a fully populated mean weight matrix, as discussed above.
+
+Lets visualise the difference selectivity makes on the mean fish weights time series and plot catch mean fish weights with IBTS mean fish weights.
+
+```{r mwts plot2 cat, echo = FALSE,fig.align='center',fig.cap="Mean fish weights of stages and entire assessed population of ank78 from the combined IBTS survey and catch"}
+
+
+cw_Y <- ank78$catch$rec_bio/ank78$catch$rec_no
+cw_Z <- ank78$catch$postrec_bio/ank78$catch$postrec_no
+cw_X <- ank78$catch$total_bio/ank78$catch$total_no
+  
+plot(y = mwts[1,],x = years,type = "b",ylim = c(0,1.5), xlab="Years", ylab = "mean wight (kg)")
+lines(y = mwts[2,],x = years,col = 2,type = "b")
+lines(y = mwts[3,],x = years,col = 4,type = "b")
+lines(y = cw_Z,x = years,col = 2,type = "l",lty=2)
+lines(y = cw_X,x = years,col = 4,type = "l",lty=2)
+lines(y = cw_Y,x = years,col = 1,type = "l",lty=2)
+
+legend("top", legend = c("Y (recruit mean fish weight from IBTS)", "Z (previously-exploited stage mean fish weight from IBTS)", "X (Total biomass mean fish weight from IBTS)", "Y (recruit mean fish weight from catch)", "Z (previously-exploited stage mean fish weight from catch)", "X (Total biomass mean fish weight from catch)"), col = rep(c(1,2,4),times=2), lty = rep(1:2,each=3),cex=0.5)
+```
+
+
+
+## Growth and estimating growth parameters
+
+If information on growth is available and weights-at-age are available these can be used (as is common for delay-difference models) to estimate growth parameters with a linear model, 
+
+$$\begin{aligned}
+\bar{w}_{a+1} = W + \rho \bar{w}_{a} \\
+\end{aligned}$$
+where $\bar{w}_a$ is the estimated weight-at-age and $\bar{w}_{a+1}$ is the weight-at-age a year older from sampling.
+
+Another option, suggested as a check by @schnute1987, can be used to estimate growth parameters through estimation of a linear model on overall mean fish weights and previously-exploited stage mean fish weights from sampling:
+
+  $$  \begin{aligned}
+X^{'}_t = W + \rho \bar{X_t} = \bar{Z}_{t+1} 
+\end{aligned}$$
+
+This equation states that the entire population sampled mean fish weight $\bar{X}_t$, after a year of growth will be $\bar{X}^{'}$, which is the equivalent to the sampled mean fish weight of the previously-exploited population $(\bar{Z})$ in time _t+1_. This relationship enables the estimation of the parameters _W_ and $\rho$  prior to running an assessment model by fitting a simple linear model.
+
+We encourage users to try both these methods, however simulation-testing indicated that the latter methodology to estimate growth parameters from $\bar{Z}$ and $\bar{X}$ is a better approximation of the deterministic growth assumed within the models. **However, this only the case if sampled mean fish weights are not skewed excessively by selectivity between stages.**  
+  
+  
+We estimate growth parameters like so,
+
+```{r growth s}
+mod <- lm(mwts[2,2:no.years]~mwts[3,1:no.years-1])
+W1 <- coef(mod)[1]
+rho1 <- coef(mod)[2]
+```
+
+Visually this looks like:
+  
+  ```{r mwts plot2 s, echo = FALSE,fig.align='center', fig.cap = "Linear relationship between overall mean fish weight and mean fish weight of the previously-exploited biomas."}
+plot(c(X[-18]), c(Z[-1]),ylim=c(0,1.5),ylab="Z_t+1",xlab="X_t")#,xlim==c(0,3))
+abline(c(W1, rho1))
+legend("topright", legend = c("linear model"), col = 1, lty = 1,cex=0.5)
+```
+
+We can visualise this approximation of linear growth on the mean fish weights time series.
+
+```{r mwts plot2 s growth, echo = FALSE,fig.align='center', fig.cap= "Mean fish weights of stages and entire assessed population of ank78 from the combined IBTS survey"}
+
+plot(y = mwts[2,],x = years,type = "b",col=2,ylim = c(0,1.5), xlab="Years", ylab = "mean wight (kg)")
+lines(y = mwts[3,],x = years,col = 4,type = "b")
+
+xtmp1<-W1 + rho1*mwts[3,]
+
+for(i in 1:no.years){
+  lines(y=c(mwts[3,i],xtmp1[i]), x= c(as.numeric(years[i]),as.numeric(years[i+1])),col=1,lty=2)
+  
+}
+
+legend("top", legend = c("Z (previously-exploited stage mean fish weight from IBTS)", "X (Total biomass mean fish weight from IBTS)","Approxmimate linear growth "), col = c(2,4,1), lty = c(1,1,3),cex=0.5)
+```
+
+
+It is unlikely these surveys do not have any selectivity differences over sizes or ages but these Schnute models assume the same catchability over the entire assessed population and offer no flexibility in the input. 
+
+Note that the `obs` matrix now has two rows, one for each biomass survey index, and `index2` starts at column 4 as this index began in 2006. 
+
+
+```{r catch survey s}
+obs <- matrix(NA,nrow=2,ncol=no.years)
+obs[1,]<-index1 
+obs[2,4:no.years]<-index2 # 
+obs[obs==0]<-NA
+```
+
+At this point in the **quick start** sections we just ran the function with this minimum amount of data and the default arguments. Here, we'll set up a list with data and arguments we want to specify. Note we are setting this list for the *Adapted Schnute Observation Error model*.
+
+```{r list dat s}
+dat <- list( version = 2,
+             catch_b = catch_biomass, 
+             indices_b = obs, 
+             ts = ank78$surv_timing, 
+             mwts = mwts, 
+             rho = rho1, 
+             W = W1 , 
+             start_q = c(1e-8, 2e-5),
+             start_indexsigma = c(0.1, 0.2), 
+             start_catchsigma = 0.1,
+             start_sigma = sigma,
+             start_f_calc = 0.5,
+             fix_sigma = TRUE, 
+             fix_indexsigma = TRUE,
+             fix_catchsigma = TRUE)
+
+```
+Details of arguments can be found in the function documentation but things to note here:
+
+* two survey timings (`ts`)
+* two starting survey catchabilities (`start_q`)
+* two starting survey standard deviations (`start_indexsigma`)
+* starting value for fishing mortality estimates is 0.5 (`start_f_calc`)
+* survival (sigma) fixed
+* survey standard deviations are estimated
+
+and...`version` is set at 2. 
+
+## Version and the relative importance of recruit or previously-exploited biomass
+
+An intriguing aspect of the model proposed in @schnute1987 is that there is three model versions, where a predicted total biomass index can be calculated a number of ways. Two of these model versions utilise all three time series of mean fish weights ($\bar{X}$, $\bar{Z}$ and $\bar{Y}$) to calculate $\omega_t$. Where, $\omega_t$ is defined as the fraction of total biomass in year _t_ due to newly recruited fish:
+
+$$
+\begin{aligned}
+\omega_t = \frac{R^*_t}{N^*_t}
+\end{aligned}
+$$
+where $R^*_t$ is recruitment biomass at time _t_ and $N^*_t$ is population biomass at time _t_. @schnute1987 demonstrates that $\omega_t$ can be derived from mean fish weights alone:
+
+$$
+\begin{aligned}
+\omega_t = \bigg(\frac{Y_t}{X_t}\bigg)\bigg(\frac{Z_t - X_t}{Z_t - Y_t}\bigg)
+\end{aligned}
+$$
+With $\omega_t$, $N^*_t$ can be calculated in the population dynamics of the Schnute model with solely either the recruit stage $R^*_t$ (`version = 1`) or the previously-exploited population stage $P^*_t$ (`version = 2`).
+
+| version | $N^*_t$ calculation |
+|:---:|:---------------:|
+| 1 | $\frac{R^*_t}{\omega_t}$ | 
+| 2 | $\frac{P^*_t}{1 - \omega_t}$ |
+| 3 | $R^*_t + P^*_t$ |
+
+`version = 3` is the more classical model form where estimated biomass in a given year is a combination of recruit biomass and previously exploited biomass.
+
+These versions offer flexibility with the type of model you would like to fit. For example, `version = 1` where the relative importance is shifted to recruit biomass might be useful for a small pelagic stock where recruitment is a big driver of biomass changes. In terms of simplicity `version = 2` would be the preferred model as no recruitment parameters need to be estimated internally. Versions 1 and 3 fit a Beverton-Holt stock recruitment function internally in the model and these parameters can be difficult to estimate (as we'll see later).
+
+
+## Version comparison
+
+Lets load the data, with the three versions. We'll use the default recruitment parameters and not alter with proportion of biomass mature (`spawn_prop`).
+
+```{r ver2 3 1,message=FALSE, warning=FALSE}
+ver2<-do.call(schnute_obserror,dat)
+
+dat$version = 1
+ver1<-do.call(schnute_obserror,dat)
+
+dat$version = 3
+ver3<-do.call(schnute_obserror,dat)
+```
+Check model evaluate to a finite number with starting parameters
+
+```{r evaluate s}
+ver1$fn(ver1$par)
+
+ver2$fn(ver2$par)
+
+ver3$fn(ver3$par)
+```
+
+All three do which is a good start. If they didn't then we would have to play around with starting parameters.
+
+Now let's try and optimise them using `TMBhelper::fit_tmb`, which uses `nlminb`.
+
+```{r fits s}
+fit1 <- fit_tmb(obj = ver1, getHessian = T ,quiet=T,control = list(trace=0))
+
+fit2 <- fit_tmb(obj = ver2, getHessian = T ,quiet=T,control = list(trace=0))
+
+fit3 <- fit_tmb(obj = ver3, getHessian = T ,quiet=T,control = list(trace=0))
+```
+
+We can see that the models where `version = 1` and `version = 2` optimised without flagging an issue, whereas the model with `version = 3` could not return a positive definite Hessian.
+
+Remember to follow up convergence with a check on estimability.
+
+```{r checks s}
+
+check_estimability(ver1)
+check_estimability(ver2)
+check_estimability(ver3)
+```
+
+Models with `version 1`(even though converged with nlminb with a reasonable max gradient) and `version = 3` were not able to properly estimate all their parameters. These two models are estimating recruitment parameters, which is likely the problem, hence the issues flagged with the warning about the hessian and parameter estimability.
+
+Investigating the `version 1` and `version = 3` we've found that using a genetic algorithm to optimise may work for these models. Also worth trying is a stock that is more driven by the recruit stage, e.g. a small pelagic. Stock-Recruit parameters may be easier to estimate in these circumstances.
