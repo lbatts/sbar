@@ -6,7 +6,7 @@
 \alias{sbar-package}
 \title{sbar: Stage-based Assessments in R}
 \description{
-c(Implementations of the stage-based fisheries assessment models CSA and Schnute (1987). Models are those detailed and implemented in a manuscript currently under review.)
+Implementations of the stage-based fisheries assessment models CSA and Schnute (1987). Models are those detailed and implemented in a manuscript currently under review.
 }
 \seealso{
 Useful links:
@@ -22,11 +22,7 @@ Useful links:
 Authors:
 \itemize{
   \item Coilin Minto \email{coilin.minto@gmit.ie}
-}
-
-Other contributors:
-\itemize{
-  \item Hans Gerritsen [contributor]
+  \item Hans Gerritsen
 }
 
 }
